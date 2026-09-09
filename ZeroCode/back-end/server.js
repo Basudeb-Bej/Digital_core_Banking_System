@@ -1,4 +1,6 @@
 // back-end/server.js
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
