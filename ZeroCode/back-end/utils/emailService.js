@@ -1,7 +1,7 @@
 // back-end/utils/emailService.js
 require("dotenv").config();
 const nodemailer = require("nodemailer");
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000" || "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-ebon-zeta.vercel.app";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -71,7 +71,7 @@ exports.sendApprovalEmail = async (account, rawPassword = null) => {
         </p>
 
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${BASE_URL}" style="background-color: #0d6efd; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+          <a href="${CLIENT_URL}" style="background-color: #0d6efd; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
             Log In to Your Account
           </a>
         </div>
