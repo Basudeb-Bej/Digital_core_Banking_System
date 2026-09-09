@@ -590,7 +590,7 @@ function BankForm({ inline = false }) {
       fd.append("confirmPassword", formData.confirmPassword);
       fd.append("gender", formData.gender);
 
-      await axios.post("http://localhost:8000/api/accounts", fd, {
+      await axios.post(`${BASE_URL}/api/accounts`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMessage("Success: Account application submitted successfully.");
