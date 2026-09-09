@@ -1,49 +1,25 @@
 // back-end/utils/emailService.js
 require("dotenv").config();
-const dns = require("dns");
-const os = require("os");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-// Guarantee IPv6 is disabled even if emailService is loaded independently
-dns.setDefaultResultOrder('ipv4first');
-
-const originalNetworkInterfaces = os.networkInterfaces;
-os.networkInterfaces = () => {
-  const interfaces = originalNetworkInterfaces.call(os);
-  for (const name of Object.keys(interfaces)) {
-    interfaces[name] = interfaces[name].filter(
-      (iface) => iface.family !== 'IPv6' && iface.family !== 6
-    );
-  }
-  return interfaces;
-};
-
+const resend = new Resend(process.env.RESEND_API_KEY);
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-ebon-zeta.vercel.app";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  pool: true,
-  maxConnections: 3,
-  maxMessages: 100,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-});
-
-// Generic email sender
+// Generic email sender using Resend HTTPS API (Port 443)
 exports.sendEmail = async ({ to, subject, html }) => {
-  return await transporter.sendMail({
-    from: `"ZeroBank" <${process.env.EMAIL_USER}>`,
-    to,
+  const { data, error } = await resend.emails.send({
+    from: "ZeroBank <onboarding@resend.dev>",
+    to: [to],
     subject,
     html,
   });
+
+  if (error) {
+    console.error("[ZeroBank] Resend error:", error);
+    throw new Error(error.message);
+  }
+
+  return data;
 };
 
 // 1. Account Approval Email Template
