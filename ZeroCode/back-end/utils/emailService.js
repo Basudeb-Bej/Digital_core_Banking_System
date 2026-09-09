@@ -3,13 +3,29 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-ebon-zeta.vercel.app";
 
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+//   family: 4,
+// });
+
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true for port 465, false for 587
+  pool: true,   // Reuse existing connections
+  maxConnections: 3,
+  maxMessages: 100,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  family: 4,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 // Generic email sender
