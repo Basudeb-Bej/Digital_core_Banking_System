@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const LoginModal = () => {
   const [activeTab, setActiveTab] = useState("user");
@@ -89,7 +90,7 @@ const LoginModal = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:8000/api/auth/login",
+        `${BASE_URL}/api/auth/login`,
         payload
       );
 
@@ -143,7 +144,7 @@ const LoginModal = () => {
         message: `${contactData.issue}`,
       };
 
-      const res = await axios.post("http://localhost:8000/api/users/contact", payload);
+      const res = await axios.post(`${BASE_URL}/api/users/contact`, payload);
 
       setSuccessMsg(
         res.data.message ||

@@ -3,6 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Alert, Spinner } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function ChangePassword() {
   const [formData, setFormData] = useState({
@@ -51,7 +52,7 @@ export default function ChangePassword() {
 
       // Fixed endpoint from /api/user/ to /api/users/
       const res = await axios.put(
-        `http://localhost:8000/api/users/change-password/${userId}`,
+        `${BASE_URL}/api/users/change-password/${userId}`,
         { oldPassword, newPassword }
       );
 

@@ -3,6 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { FaWallet, FaRupeeSign } from "react-icons/fa";
 import Card from "react-bootstrap/Card";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function AdminFundTransfer() {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ export default function AdminFundTransfer() {
     }
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:8000/api/transactions/transfer", formData);
+      const res = await axios.post(`${BASE_URL}/api/transactions/transfer`, formData);
       alert(res.data.message);
       setFormData({ senderAccNo: "", recipientName: "", recipientAccount: "", amount: "", description: "" });
     } catch (err) {

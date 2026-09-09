@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { Card, Button, Form, Alert, Badge } from "react-bootstrap";
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const INSURANCE_PLANS = [
   {
@@ -131,7 +132,7 @@ export default function Insurance() {
     try {
       let res;
       try {
-        res = await axios.post("http://localhost:8000/api/insurance/apply", payload);
+        res = await axios.post(`${BASE_URL}/api/insurance/apply`, payload);
       } catch {
         res = { data: { policyNo: "POL-" + Math.floor(100000 + Math.random() * 900000) } };
       }

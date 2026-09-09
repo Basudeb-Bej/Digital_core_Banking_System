@@ -17,6 +17,7 @@ import {
   FaUser,
   FaCity
 } from "react-icons/fa";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function AccountDetails() {
   const [account, setAccount] = useState(null);
@@ -36,7 +37,7 @@ export default function AccountDetails() {
 
     setLoading(true);
     axios
-      .get(`http://localhost:8000/api/accounts/email/${email}`)
+      .get(`${BASE_URL}/api/accounts/email/${email}`)
       .then((res) => {
         setAccount(res.data);
         setError("");
@@ -44,7 +45,7 @@ export default function AccountDetails() {
       .catch(() => {
         // Fallback: try by account number if email lookup failed
         axios
-          .get(`http://localhost:8000/api/accounts/${email}`)
+          .get(`${BASE_URL}/api/accounts/${email}`)
           .then((res) => {
             setAccount(res.data.account || res.data);
             setError("");
@@ -67,7 +68,7 @@ export default function AccountDetails() {
     try {
       setDownloading(true);
       const res = await axios.get(
-        `http://localhost:8000/api/accounts/${account.accNo}/statement`,
+        `${BASE_URL}/api/accounts/${account.accNo}/statement`,
         { responseType: "blob" }
       );
 

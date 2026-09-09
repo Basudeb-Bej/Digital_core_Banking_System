@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaUserEdit, FaTrashAlt, FaPlus, FaUsers } from "react-icons/fa";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function ManageUsers() {
   const [records, setRecords] = useState([]);
@@ -28,7 +29,7 @@ export default function ManageUsers() {
   const fetchData = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8000/api/admin/${entityType}`,
+        `${BASE_URL}/api/admin/${entityType}`,
         getAuthConfig()
       );
 
@@ -56,8 +57,8 @@ export default function ManageUsers() {
     e.preventDefault();
     try {
       const url = editingItem
-        ? `http://localhost:8000/api/admin/${entityType}/${editingItem._id}`
-        : `http://localhost:8000/api/admin/${entityType}`;
+        ? `${BASE_URL}/api/admin/${entityType}/${editingItem._id}`
+        : `${BASE_URL}/api/admin/${entityType}`;
       const method = editingItem ? "put" : "post";
 
       await axios[method](url, formData, getAuthConfig());
@@ -98,7 +99,7 @@ export default function ManageUsers() {
     if (!window.confirm("Are you sure you want to delete this record?")) return;
     try {
       await axios.delete(
-        `http://localhost:8000/api/admin/${entityType}/${id}`,
+        `${BASE_URL}/api/admin/${entityType}/${id}`,
         getAuthConfig()
       );
       fetchData();

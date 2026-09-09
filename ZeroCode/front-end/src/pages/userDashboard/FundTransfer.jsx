@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FaUser, FaWallet, FaRupeeSign, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import { Card, Button, Alert } from "react-bootstrap";
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function FundTransfer() {
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ export default function FundTransfer() {
       setVerifying(true);
       setMessage({ type: "", text: "" });
 
-      const res = await axios.get(`http://localhost:8000/api/accounts/${cleanAcc}`);
+      const res = await axios.get(`${BASE_URL}/api/accounts/${cleanAcc}`);
       const foundAccount = res.data?.account || res.data;
 
       if (foundAccount?.fullName) {
@@ -99,7 +100,7 @@ export default function FundTransfer() {
 
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:8000/api/transactions/transfer", {
+      const response = await axios.post(`${BASE_URL}/api/transactions/transfer`, {
         senderAccNo,
         ...formData,
       });

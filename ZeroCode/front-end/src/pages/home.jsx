@@ -20,6 +20,7 @@ import img9 from "../assets/img/image19.png";
 import img10 from "../assets/img/image20.png";
 import img11 from "../assets/img/image21.png";
 import img12 from "../assets/img/image22.png";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
@@ -59,7 +60,7 @@ function HomeCarousel() {
     setContactFeedback({ type: "", text: "" });
 
     try {
-      const res = await axios.post("http://localhost:8000/api/users/contact", contactData);
+      const res = await axios.post(`${BASE_URL}/api/users/contact`, contactData);
       setContactFeedback({
         type: "success",
         text: res.data.message || "Message sent successfully to ZeroBank Support!",

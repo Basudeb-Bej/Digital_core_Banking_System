@@ -17,6 +17,7 @@ import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
 import defaultProfile from "../../assets/img/profile.png";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function Profile() {
   const userId = localStorage.getItem("userId");
@@ -33,7 +34,7 @@ export default function Profile() {
     if (!userId) return;
 
     axios
-      .get(`http://localhost:8000/api/users/${userId}`)
+      .get(`${BASE_URL}/api/users/${userId}`)
       .then((res) => {
         setProfile(res.data);
         setImageError(false);
@@ -64,7 +65,7 @@ export default function Profile() {
       setStatusMessage({ type: "", text: "" });
 
       const res = await axios.put(
-        `http://localhost:8000/api/users/profile-image/${userId}`,
+        `${BASE_URL}/api/users/profile-image/${userId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -155,7 +156,7 @@ export default function Profile() {
               >
                 {hasCustomPhoto && !imageError ? (
                   <img
-                    src={`http://localhost:8000${profile.photo}`}
+                    src={`${BASE_URL}${profile.photo}`}
                     alt="Profile"
                     onError={() => setImageError(true)}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}

@@ -1,8 +1,9 @@
 // front-end/src/api/transactionApi.js
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const transactionApi = axios.create({
-  baseURL: "http://localhost:8000/api/transactions",
+  baseURL: `${BASE_URL}/api/transactions`,
 });
 
 transactionApi.interceptors.request.use((config) => {

@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import { Card, Button, Form, Alert, Badge } from "react-bootstrap";
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const LOAN_TYPES = [
   {
@@ -141,7 +142,7 @@ export default function Loan() {
       // Send to backend if endpoint exists, with simulated fallback
       let res;
       try {
-        res = await axios.post("http://localhost:8000/api/loans/apply", payload);
+        res = await axios.post(`${BASE_URL}/api/loans/apply`, payload);
       } catch {
         res = { data: { applicationNo: "LN-" + Math.floor(100000 + Math.random() * 900000) } };
       }

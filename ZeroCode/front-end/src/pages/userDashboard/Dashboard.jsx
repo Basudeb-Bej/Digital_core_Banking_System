@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // make sure to import this
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function UserDashboard() {
   useEffect(() => {
     if (userId) {
       axios
-        .get(`http://localhost:8000/api/users/dashboard/${userId}`)
+        .get(`${BASE_URL}/api/users/dashboard/${userId}`)
         .then((res) => {
           setUserData({
             totalBalance: res.data.totalBalance || 0,
@@ -56,7 +57,7 @@ export default function UserDashboard() {
   useEffect(() => {
     if (userId) {
       axios
-        .get(`http://localhost:8000/api/transactions/recent/${userId}`)
+        .get(`${BASE_URL}/api/transactions/recent/${userId}`)
         .then((res) => {
           setTransactions(res.data);
         })

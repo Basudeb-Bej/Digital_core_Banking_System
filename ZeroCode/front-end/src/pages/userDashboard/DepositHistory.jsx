@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Card, Table, Form, InputGroup, Badge } from "react-bootstrap";
 import { FaSearch, FaUserCheck, FaCoins } from "react-icons/fa";
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function DepositHistory() {
   const [deposits, setDeposits] = useState([]);
@@ -14,7 +15,7 @@ export default function DepositHistory() {
   useEffect(() => {
     if (userId) {
       axios
-        .get(`http://localhost:8000/api/transactions/deposits/${userId}`)
+        .get(`${BASE_URL}/api/transactions/deposits/${userId}`)
         .then((res) => setDeposits(res.data))
         .catch((err) => console.error(err));
     }
@@ -26,7 +27,7 @@ export default function DepositHistory() {
     const clean = accNo.trim();
     if (clean.length >= 10) {
       try {
-        const res = await axios.get(`http://localhost:8000/api/accounts/${clean}`);
+        const res = await axios.get(`${BASE_URL}/api/accounts/${clean}`);
         const acc = res.data?.account || res.data;
         setSearchedName(acc?.fullName || "Account not found");
       } catch {
