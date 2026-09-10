@@ -1,7 +1,7 @@
 // back-end/utils/emailService.js
 require("dotenv").config();
 
-const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-ebon-zeta.vercel.app";
+const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-five.vercel.app";
 
 // Generic email sender using EmailJS REST API over HTTPS
 exports.sendEmail = async ({ to, subject, html }) => {
