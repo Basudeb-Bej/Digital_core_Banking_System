@@ -2,34 +2,35 @@
 require("dotenv").config();
 
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-ebon-zeta.vercel.app";
-// Use your registered email in Brevo:
-const SENDER_EMAIL = process.env.EMAIL_USER || "basudebbej2025@gmail.com";
 
-// Generic email sender using Brevo HTTPS REST API (Port 443)
+// Generic email sender using EmailJS REST API over HTTPS
 exports.sendEmail = async ({ to, subject, html }) => {
-  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+  const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
     method: "POST",
     headers: {
-      "accept": "application/json",
-      "api-key": process.env.BREVO_API_KEY,
-      "content-type": "application/json",
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      sender: { name: "ZeroBank", email: SENDER_EMAIL },
-      to: [{ email: to }],
-      subject: subject,
-      htmlContent: html,
+      service_id: process.env.EMAILJS_SERVICE_ID,
+      template_id: process.env.EMAILJS_TEMPLATE_ID,
+      user_id: process.env.EMAILJS_PUBLIC_KEY,
+      accessToken: process.env.EMAILJS_PRIVATE_KEY,
+      template_params: {
+        to_email: to,
+        subject: subject,
+        html_content: html,
+      },
     }),
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    console.error("[ZeroBank] Brevo API error:", data);
-    throw new Error(data.message || "Failed to send email via Brevo");
+    const errText = await response.text();
+    console.error("[ZeroBank] EmailJS error:", errText);
+    throw new Error(errText || "Failed to send email via EmailJS");
   }
 
-  return data;
+  console.log(`[ZeroBank] Email successfully delivered to: ${to}`);
+  return true;
 };
 
 // 1. Account Approval Email Template
@@ -70,15 +71,11 @@ exports.sendApprovalEmail = async (account, rawPassword = null) => {
               <td style="padding: 6px 0; color: #64748b;">Registered Mobile:</td>
               <td style="padding: 6px 0; font-weight: bold; color: #0f172a;">${account.mobile || "—"}</td>
             </tr>
-            <tr>
-              <td style="padding: 6px 0; color: #64748b;">Password:</td>
-              <td style="padding: 6px 0; font-weight: bold; color: #0f172a;">${loginPassword}</td>
-            </tr>
           </table>
         </div>
 
         <p style="font-size: 14px; line-height: 1.5;">
-          You can now log in to the <strong>ZeroBank Customer Portal</strong> using your Account Number as your Customer ID and your registered password.
+          You can now log in to the <strong>ZeroBank Customer Portal</strong> using your Account Number as your Customer ID.
         </p>
 
         <div style="text-align: center; margin: 30px 0;">
@@ -86,23 +83,19 @@ exports.sendApprovalEmail = async (account, rawPassword = null) => {
             Log In to Your Account
           </a>
         </div>
-
-        <p style="font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px;">
-          For security reasons, never share your password or banking credentials with anyone.
-        </p>
       </div>
     </div>
   `;
 
   return await exports.sendEmail({
     to: account.email,
-    subject: "ZeroBank - Account Approved & Login Details",
+    subject: "ZeroBank - Account Approved",
     html,
   });
 };
 
 // 2. Account Rejection Email Template
-exports.sendRejectionEmail = async (account, reason = "Information or documentation provided did not meet bank verification criteria.") => {
+exports.sendRejectionEmail = async (account, reason = "Information or documentation provided did not meet verification criteria.") => {
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
       <div style="background-color: #dc3545; color: #ffffff; padding: 24px; text-align: center;">
@@ -112,32 +105,15 @@ exports.sendRejectionEmail = async (account, reason = "Information or documentat
 
       <div style="padding: 24px; color: #334155;">
         <p style="font-size: 16px;">Dear <strong>${account.fullName}</strong>,</p>
-        <p>Thank you for your interest in opening an account with ZeroBank.</p>
-        <p>
-          After reviewing your submitted application, our verification team was unable to approve your account at this time.
-        </p>
+        <p>After reviewing your submitted application, our verification team was unable to approve your account at this time.</p>
 
         <div style="background-color: #fff5f5; border: 1px solid #fed7d7; border-radius: 6px; padding: 16px; margin: 20px 0;">
-          <h4 style="margin-top: 0; color: #c53030;">Reason for Rejection:</h4>
+          <h4 style="margin-top: 0; color: #c53030;">Reason:</h4>
           <p style="margin-bottom: 0; color: #742a2a; font-size: 14px;">${reason}</p>
         </div>
 
-        <div style="font-size: 14px; color: #475569;">
-          <p><strong>Application Details:</strong></p>
-          <ul style="padding-left: 20px; line-height: 1.6;">
-            <li><strong>Applicant Name:</strong> ${account.fullName}</li>
-            <li><strong>Submitted Email:</strong> ${account.email}</li>
-            <li><strong>Account Type Requested:</strong> ${account.accountType || "Savings"}</li>
-            <li><strong>Date of Application:</strong> ${new Date(account.createdAt || Date.now()).toLocaleDateString()}</li>
-          </ul>
-        </div>
-
         <p style="font-size: 14px; line-height: 1.5; margin-top: 20px;">
-          If you believe this is an error or wish to provide updated documents, you may submit a fresh application on our website or contact support.
-        </p>
-
-        <p style="font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px;">
-          ZeroBank Compliance & Customer Operations
+          If you believe this is an error or wish to provide updated documents, you may submit a fresh application on our website.
         </p>
       </div>
     </div>
@@ -145,7 +121,7 @@ exports.sendRejectionEmail = async (account, reason = "Information or documentat
 
   return await exports.sendEmail({
     to: account.email,
-    subject: "ZeroBank - Account Application Update",
+    subject: "ZeroBank - Application Update",
     html,
   });
 };
