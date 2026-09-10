@@ -1,22 +1,32 @@
 // back-end/utils/emailService.js
 require("dotenv").config();
-const { Resend } = require("resend");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-ebon-zeta.vercel.app";
+// Use your registered email in Brevo:
+const SENDER_EMAIL = process.env.EMAIL_USER || "basudebbej2025@gmail.com";
 
-// Generic email sender using Resend HTTPS API (Port 443)
+// Generic email sender using Brevo HTTPS REST API (Port 443)
 exports.sendEmail = async ({ to, subject, html }) => {
-  const { data, error } = await resend.emails.send({
-    from: "ZeroBank <onboarding@resend.dev>",
-    to: [to],
-    subject,
-    html,
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "accept": "application/json",
+      "api-key": process.env.BREVO_API_KEY,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: "ZeroBank", email: SENDER_EMAIL },
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html,
+    }),
   });
 
-  if (error) {
-    console.error("[ZeroBank] Resend error:", error);
-    throw new Error(error.message);
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("[ZeroBank] Brevo API error:", data);
+    throw new Error(data.message || "Failed to send email via Brevo");
   }
 
   return data;
