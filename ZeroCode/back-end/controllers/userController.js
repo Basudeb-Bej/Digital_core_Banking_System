@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const Account = require("../models/accountModel");
 const Transaction = require("../models/transactionModel");
+const AdminUser = require("../models/adminModel");
 let User;
 try {
   User = require("../models/userModel");
@@ -11,6 +12,7 @@ try {
 const multer = require("multer");
 const path = require("path");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { sendEmail } = require("../utils/emailService");
 
 exports.getUserDashboard = async (req, res) => {
@@ -253,5 +255,185 @@ exports.contactSupport = async (req, res) => {
   } catch (error) {
     console.error("Error sending contact email:", error);
     res.status(500).json({ message: "Server error sending message. Please try again later." });
+  }
+};
+
+/* ===========================================================
+   FORGOT PASSWORD — STEP 1: VERIFY IDENTITY
+   - Customers (role "user"): Name, Account Number, Email, Phone
+     must all match an active Account record.
+   - Admins (role "admin"): Name, Email, Phone, Aadhaar, PAN and
+     Date of Birth must all match an AdminUser record.
+   Only a match issues a short-lived verification token — nobody
+   else can proceed to the "send request" step.
+=========================================================== */
+exports.verifyForgotPasswordIdentity = async (req, res) => {
+  try {
+    const { role, name, email, phone } = req.body;
+
+    if (!role || !name || !email || !phone) {
+      return res.status(400).json({
+        message: "Name, Email and Phone are required for verification.",
+      });
+    }
+
+    const cleanName = String(name).trim().toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanPhone = String(phone).replace(/\D/g, "");
+
+    let record = null;
+    let tokenIdentifier = null;
+
+    if (role === "admin") {
+      const { aadhaar, pan, dob } = req.body;
+
+      if (!aadhaar || !pan || !dob) {
+        return res.status(400).json({
+          message: "Aadhaar, PAN and Date of Birth are also required to verify an admin.",
+        });
+      }
+
+      const cleanAadhaar = String(aadhaar).replace(/\s/g, "");
+      const cleanPan = String(pan).trim().toUpperCase();
+      const cleanDob = String(dob).trim().toLowerCase();
+
+      // Email is unique for AdminUser, so it's a safe lookup key
+      const admin = await AdminUser.findOne({ email: cleanEmail });
+      if (
+        admin &&
+        (admin.fullName || "").trim().toLowerCase() === cleanName &&
+        (admin.phone || "").replace(/\D/g, "") === cleanPhone &&
+        (admin.aadhaar || "").replace(/\s/g, "") === cleanAadhaar &&
+        (admin.pan || "").trim().toUpperCase() === cleanPan &&
+        (admin.dob || "").trim().toLowerCase() === cleanDob
+      ) {
+        record = admin;
+        tokenIdentifier = cleanEmail;
+      }
+    } else if (role === "user") {
+      const { identifier } = req.body;
+
+      if (!identifier) {
+        return res.status(400).json({ message: "Account Number is required for verification." });
+      }
+
+      const cleanIdentifier = String(identifier).trim();
+      const account = await Account.findOne({ accNo: cleanIdentifier });
+      if (
+        account &&
+        account.status === "active" &&
+        (account.fullName || "").trim().toLowerCase() === cleanName &&
+        (account.email || "").trim().toLowerCase() === cleanEmail &&
+        (account.mobile || "").replace(/\D/g, "") === cleanPhone
+      ) {
+        record = account;
+        tokenIdentifier = cleanIdentifier;
+      }
+    } else {
+      return res.status(400).json({ message: "Invalid role specified." });
+    }
+
+    // Deliberately generic message so we never reveal which record/field
+    // caused the mismatch to someone who isn't an actual ZeroBank customer/admin.
+    if (!record) {
+      return res.status(404).json({
+        message:
+          "We couldn't verify those details against our records. Please double-check the information and try again.",
+      });
+    }
+
+    const verificationToken = jwt.sign(
+      { role, identifier: tokenIdentifier, purpose: "forgot-password-verified" },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" }
+    );
+
+    return res.status(200).json({
+      message: "Identity verified successfully. You may now submit your request.",
+      verificationToken,
+    });
+  } catch (err) {
+    console.error("Forgot password verification error:", err);
+    return res.status(500).json({ message: "Server error during verification. Please try again." });
+  }
+};
+
+/* ===========================================================
+   FORGOT PASSWORD — STEP 2: SEND VERIFIED REQUEST
+   Requires the short-lived token issued by
+   verifyForgotPasswordIdentity above. Requests without a valid,
+   unexpired token are rejected, so this step can never be
+   reached by someone who hasn't been verified as an existing
+   ZeroBank user/admin.
+=========================================================== */
+exports.sendForgotPasswordRequest = async (req, res) => {
+  try {
+    const { verificationToken, message } = req.body;
+
+    if (!verificationToken) {
+      return res.status(401).json({
+        message: "Identity verification is required before a request can be sent.",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(verificationToken, process.env.JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({
+        message: "Your verification has expired or is invalid. Please verify your details again.",
+      });
+    }
+
+    if (decoded.purpose !== "forgot-password-verified") {
+      return res.status(401).json({ message: "Invalid verification token." });
+    }
+
+    const { role, identifier } = decoded;
+
+    let record = null;
+    if (role === "admin") {
+      record = await AdminUser.findOne({ email: identifier });
+    } else if (role === "user") {
+      record = await Account.findOne({ accNo: identifier });
+    }
+
+    if (!record) {
+      return res.status(404).json({ message: "We could no longer locate your verified account record." });
+    }
+
+    await sendEmail({
+      to: process.env.EMAIL_USER,
+      subject: `[ZeroBank Support] Verified Password Recovery Request (${role.toUpperCase()})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+          <h2 style="color: #0d6efd; margin-top: 0;">Verified Password Recovery Request</h2>
+          <p><strong>Role:</strong> ${role === "admin" ? "Admin" : "Customer"}</p>
+          <p><strong>Name:</strong> ${record.fullName}</p>
+          ${
+            role === "admin"
+              ? `<p><strong>Admin Username:</strong> ${record.username || "N/A"}</p>
+                 <p><strong>Aadhaar:</strong> ${record.aadhaar || "N/A"}</p>
+                 <p><strong>PAN:</strong> ${record.pan || "N/A"}</p>
+                 <p><strong>Date of Birth:</strong> ${record.dob || "N/A"}</p>`
+              : `<p><strong>Account Number:</strong> ${identifier}</p>`
+          }
+          <p><strong>Registered Email:</strong> ${record.email}</p>
+          <p><strong>Registered Phone:</strong> ${role === "admin" ? record.phone : record.mobile}</p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
+          <h4 style="margin-bottom: 8px;">Message / Issue Details:</h4>
+          <div style="background: #f8f9fa; padding: 14px; border-left: 4px solid #0d6efd; border-radius: 4px; white-space: pre-wrap;">
+            ${message || "I forgot my password and cannot access my account. Please help me reset it."}
+          </div>
+        </div>
+      `,
+    });
+
+    return res.status(200).json({
+      message: "Your verified request has been submitted. The ZeroBank support team will contact you directly.",
+    });
+  } catch (error) {
+    console.error("Error sending forgot password request:", error);
+    return res.status(500).json({ message: "Server error sending request. Please try again later." });
   }
 };

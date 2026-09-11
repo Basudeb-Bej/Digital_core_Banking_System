@@ -7,11 +7,17 @@ const { getUserDashboard,
     updateProfileImage,
     changePassword,
     contactSupport,
+    verifyForgotPasswordIdentity,
+    sendForgotPasswordRequest,
  } = require("../controllers/userController");
 
 
 // GET dashboard data for a user
 router.get("/dashboard/:senderId", getUserDashboard);
+
+/* FORGOT PASSWORD — identity verification gate (public, no auth token yet) */
+router.post("/forgot-password/verify", verifyForgotPasswordIdentity);
+router.post("/forgot-password/send", sendForgotPasswordRequest);
 
 /* GET PROFILE */
 router.get("/:userId", getProfile);

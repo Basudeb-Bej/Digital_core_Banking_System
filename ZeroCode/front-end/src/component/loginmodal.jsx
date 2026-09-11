@@ -25,11 +25,26 @@ const LoginModal = () => {
   // Contact / Forgot Password form state
   const [contactData, setContactData] = useState({
     name: "",
-    userId: "",
+    userId: "", // customers only: account number
     email: "",
     phone: "",
+    aadhaar: "", // admins only
+    pan: "", // admins only
+    dob: "", // admins only
     issue: "I forgot my password and cannot access my account. Please help me reset it.",
   });
+
+  // Which role the "forgot password" flow is being run for (captured from
+  // the active login tab when the user clicks "Forgot Password?")
+  const [forgotRole, setForgotRole] = useState("user");
+
+  // The forgot-password flow has two gated steps:
+  //  "verify"   -> user must prove they're an existing ZeroBank customer/admin
+  //  "message"  -> only reachable after a successful verification, where
+  //                they can actually type a message and send the request
+  const [forgotStep, setForgotStep] = useState("verify");
+  const [verificationToken, setVerificationToken] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [sendingContact, setSendingContact] = useState(false);
@@ -56,6 +71,18 @@ const LoginModal = () => {
     setView("login");
     setError("");
     setSuccessMsg("");
+    setForgotStep("verify");
+    setVerificationToken("");
+    setContactData({
+      name: "",
+      userId: "",
+      email: "",
+      phone: "",
+      aadhaar: "",
+      pan: "",
+      dob: "",
+      issue: "I forgot my password and cannot access my account. Please help me reset it.",
+    });
   };
 
   const handleChange = (role, field, value) => {
@@ -126,25 +153,64 @@ const LoginModal = () => {
   };
 
   /* =====================================
-     HANDLE CONTACT / FORGOT PASSWORD
+     STEP 1: VERIFY IDENTITY AS AN EXISTING
+     ZEROBANK USER/ADMIN
+  ===================================== */
+  const handleVerifyIdentity = async (e) => {
+    e.preventDefault();
+    setVerifying(true);
+    setError("");
+    setSuccessMsg("");
+
+    try {
+      const payload = {
+        role: forgotRole,
+        name: contactData.name,
+        email: contactData.email,
+        phone: contactData.phone,
+        ...(forgotRole === "admin"
+          ? { aadhaar: contactData.aadhaar, pan: contactData.pan, dob: contactData.dob }
+          : { identifier: contactData.userId }),
+      };
+
+      const res = await axios.post(`${BASE_URL}/api/users/forgot-password/verify`, payload);
+
+      setVerificationToken(res.data.verificationToken);
+      setForgotStep("message");
+      setSuccessMsg(res.data.message || "Identity verified. You may now send your request.");
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "We couldn't verify your details. Please make sure you are an existing ZeroBank customer/admin."
+      );
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  /* =====================================
+     STEP 2: SEND THE VERIFIED REQUEST
+     (only reachable once verificationToken exists)
   ===================================== */
   const handleContactSubmit = async (e) => {
     e.preventDefault();
+
+    if (!verificationToken) {
+      setError("Please verify your identity first.");
+      return;
+    }
+
     setSendingContact(true);
     setError("");
     setSuccessMsg("");
 
     try {
       const payload = {
-        name: contactData.name,
-        email: contactData.email,
-        phone: contactData.phone,
-        subject: `Password Recovery Assistance.\n\n\n User ID/Account Number: ${contactData.userId || "Not Provided"}`,
-        //message: `Customer User ID / Account Number: ${contactData.userId || "Not Specified"}\n\nIssue Description:\n${contactData.issue}`,
-        message: `${contactData.issue}`,
+        verificationToken,
+        message: contactData.issue,
       };
 
-      const res = await axios.post(`${BASE_URL}/api/users/contact`, payload);
+      const res = await axios.post(`${BASE_URL}/api/users/forgot-password/send`, payload);
 
       setSuccessMsg(
         res.data.message ||
@@ -155,10 +221,20 @@ const LoginModal = () => {
         userId: "",
         email: "",
         phone: "",
+        aadhaar: "",
+        pan: "",
+        dob: "",
         issue: "",
       });
+      setVerificationToken("");
+      setForgotStep("verify");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to submit request. Please try again.");
+      // If the token expired/was rejected server-side, send them back to verify again
+      if (err.response?.status === 401) {
+        setVerificationToken("");
+        setForgotStep("verify");
+      }
     } finally {
       setSendingContact(false);
     }
@@ -268,6 +344,9 @@ const LoginModal = () => {
                       onClick={() => {
                         setError("");
                         setSuccessMsg("");
+                        setForgotRole(activeTab);
+                        setForgotStep("verify");
+                        setVerificationToken("");
                         // Auto-fill User ID if already typed
                         setContactData((prev) => ({
                           ...prev,
@@ -297,122 +376,226 @@ const LoginModal = () => {
               </>
             ) : (
               /* ====================================================
-                 VIEW 2: FORGOT PASSWORD / CONTACT SUPPORT FORM
+                 VIEW 2: FORGOT PASSWORD (VERIFY-GATED) SUPPORT FORM
+                 Step "verify"  -> prove you're an existing customer/admin
+                 Step "message" -> only unlocked after verification passes
               ==================================================== */
-              <form onSubmit={handleContactSubmit}>
-                <p className="text-muted small mb-3">
-                  Please provide your registered account details below. A representative from the <strong>ZeroBank</strong> support team will contact you directly to assist with password recovery.
-                </p>
+              forgotStep === "verify" ? (
+                <form onSubmit={handleVerifyIdentity}>
+                  <p className="text-muted small mb-3">
+                    This facility is only available to existing <strong>ZeroBank</strong> customers/admins.
+                    Please confirm your registered details below — once verified, you'll be able to send a
+                    message to our support team.
+                  </p>
 
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold">Full Name *</label>
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaUser />
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Enter your full name"
-                      value={contactData.name}
-                      onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
-                      required
-                    />
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">
+                      {forgotRole === "admin" ? "Admin Full Name *" : "Full Name *"}
+                    </label>
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <FaUser />
+                      </span>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Enter your registered full name"
+                        value={contactData.name}
+                        onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
+                        disabled={verifying}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold">Customer User ID / Account Number *</label>
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaUser />
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="e.g. 2012345678"
-                      value={contactData.userId}
-                      onChange={(e) => setContactData({ ...contactData, userId: e.target.value })}
-                      required
-                    />
+                  {forgotRole === "user" && (
+                    <div className="mb-3">
+                      <label className="form-label small fw-semibold">Customer Account Number *</label>
+                      <div className="input-group">
+                        <span className="input-group-text">
+                          <FaUser />
+                        </span>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="e.g. 2012345678"
+                          value={contactData.userId}
+                          onChange={(e) => setContactData({ ...contactData, userId: e.target.value })}
+                          disabled={verifying}
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">Registered Email Address *</label>
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <FaEnvelope />
+                      </span>
+                      <input
+                        type="email"
+                        className="form-control"
+                        placeholder="name@example.com"
+                        value={contactData.email}
+                        onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
+                        disabled={verifying}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold">Registered Email Address *</label>
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaEnvelope />
-                    </span>
-                    <input
-                      type="email"
-                      className="form-control"
-                      placeholder="name@example.com"
-                      value={contactData.email}
-                      onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-                      required
-                    />
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">Registered Mobile Number *</label>
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <FaPhone />
+                      </span>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        placeholder="e.g. 9876543210"
+                        value={contactData.phone}
+                        onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
+                        disabled={verifying}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold">Registered Mobile Number *</label>
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <FaPhone />
-                    </span>
-                    <input
-                      type="tel"
-                      className="form-control"
-                      placeholder="e.g. 9876543210"
-                      value={contactData.phone}
-                      onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
-                      required
-                    />
+                  {forgotRole === "admin" && (
+                    <>
+                      <div className="mb-3">
+                        <label className="form-label small fw-semibold">Aadhaar Number *</label>
+                        <div className="input-group">
+                          <span className="input-group-text">
+                            <FaUser />
+                          </span>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="12-digit Aadhaar number"
+                            value={contactData.aadhaar}
+                            onChange={(e) => setContactData({ ...contactData, aadhaar: e.target.value })}
+                            disabled={verifying}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="form-label small fw-semibold">PAN Number *</label>
+                        <div className="input-group">
+                          <span className="input-group-text">
+                            <FaUser />
+                          </span>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="e.g. ABCDE1234F"
+                            value={contactData.pan}
+                            onChange={(e) => setContactData({ ...contactData, pan: e.target.value })}
+                            disabled={verifying}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="form-label small fw-semibold">Date of Birth *</label>
+                        <div className="input-group">
+                          <span className="input-group-text">
+                            <FaUser />
+                          </span>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="As on your admin profile, e.g. 15 June 2027"
+                            value={contactData.dob}
+                            onChange={(e) => setContactData({ ...contactData, dob: e.target.value })}
+                            disabled={verifying}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMsg("");
+                        setView("login");
+                      }}
+                      disabled={verifying}
+                    >
+                      <FaArrowLeft /> Back to Login
+                    </button>
+
+                    <button
+                      type="submit"
+                      className="btn btn-primary d-flex align-items-center gap-2"
+                      disabled={verifying}
+                    >
+                      {verifying ? "Verifying..." : "Verify Identity"}
+                    </button>
                   </div>
-                </div>
+                </form>
+              ) : (
+                <form onSubmit={handleContactSubmit}>
+                  <p className="text-muted small mb-3">
+                    ✅ Identity verified as <strong>{contactData.name}</strong>. You may now describe your
+                    issue below and send it to the ZeroBank support team.
+                  </p>
 
-                <div className="mb-3">
-                  <label className="form-label small fw-semibold">Describe Your Issue *</label>
-                  <textarea
-                    className="form-control"
-                    rows="3"
-                    placeholder="Describe your issue..."
-                    value={contactData.issue}
-                    onChange={(e) => setContactData({ ...contactData, issue: e.target.value })}
-                    required
-                  ></textarea>
-                </div>
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">Describe Your Issue *</label>
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      placeholder="Describe your issue..."
+                      value={contactData.issue}
+                      onChange={(e) => setContactData({ ...contactData, issue: e.target.value })}
+                      disabled={sendingContact}
+                      required
+                    ></textarea>
+                  </div>
 
-                <div className="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-                    onClick={() => {
-                      setError("");
-                      setSuccessMsg("");
-                      setView("login");
-                    }}
-                    disabled={sendingContact}
-                  >
-                    <FaArrowLeft /> Back to Login
-                  </button>
+                  <div className="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMsg("");
+                        setForgotStep("verify");
+                        setVerificationToken("");
+                      }}
+                      disabled={sendingContact}
+                    >
+                      <FaArrowLeft /> Back
+                    </button>
 
-                  <button
-                    type="submit"
-                    className="btn btn-primary d-flex align-items-center gap-2"
-                    disabled={sendingContact}
-                  >
-                    {sendingContact ? (
-                      "Submitting..."
-                    ) : (
-                      <>
-                        <FaPaperPlane /> Send to ZeroBank
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+                    <button
+                      type="submit"
+                      className="btn btn-primary d-flex align-items-center gap-2"
+                      disabled={sendingContact || !verificationToken}
+                    >
+                      {sendingContact ? (
+                        "Submitting..."
+                      ) : (
+                        <>
+                          <FaPaperPlane /> Send to ZeroBank
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )
             )}
           </div>
         </div>
