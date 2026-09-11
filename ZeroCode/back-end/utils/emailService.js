@@ -1,35 +1,27 @@
 // back-end/utils/emailService.js
 require("dotenv").config();
+const { Resend } = require("resend");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-five.vercel.app";
 
-// Generic email sender using EmailJS REST API over HTTPS
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "ZeroBank <onboarding@resend.dev>";
+
 exports.sendEmail = async ({ to, subject, html }) => {
-  const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      service_id: process.env.EMAILJS_SERVICE_ID,
-      template_id: process.env.EMAILJS_TEMPLATE_ID,
-      user_id: process.env.EMAILJS_PUBLIC_KEY,
-      accessToken: process.env.EMAILJS_PRIVATE_KEY,
-      template_params: {
-        to_email: to,
-        subject: subject,
-        html_content: html,
-      },
-    }),
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject,
+    html,
   });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("[ZeroBank] EmailJS error:", errText);
-    throw new Error(errText || "Failed to send email via EmailJS");
+  if (error) {
+    console.error("[ZeroBank] Resend error:", error);
+    throw new Error(error.message || "Failed to send email via Resend");
   }
 
-  console.log(`[ZeroBank] Email successfully delivered to: ${to}`);
+  console.log(`[ZeroBank] Email successfully delivered to: ${to} (id: ${data?.id})`);
   return true;
 };
 
