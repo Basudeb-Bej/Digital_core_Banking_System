@@ -5,7 +5,7 @@ const nodemailer = require("nodemailer");
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-five.vercel.app";
 
 // 1. Configure Nodemailer with Gmail SMTP
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
