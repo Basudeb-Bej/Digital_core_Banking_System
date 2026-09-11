@@ -1,31 +1,37 @@
 // back-end/utils/emailService.js
 require("dotenv").config();
-const { Resend } = require("resend");
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const nodemailer = require("nodemailer");
 
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-five.vercel.app";
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "ZeroBank <onboarding@resend.dev>";
+// 1. Configure Nodemailer with Gmail SMTP
+const transporter = nodemailer.createTransporter({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
+// 2. Generic email sender used across controllers
 exports.sendEmail = async ({ to, subject, html }) => {
-  const { data, error } = await resend.emails.send({
-    from: FROM_EMAIL,
-    to,
-    subject,
-    html,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: `"ZeroBank" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
 
-  if (error) {
-    console.error("[ZeroBank] Resend error:", error);
-    throw new Error(error.message || "Failed to send email via Resend");
+    console.log(`[ZeroBank] Email successfully delivered to: ${to} (Message ID: ${info.messageId})`);
+    return true;
+  } catch (error) {
+    console.error("[ZeroBank] Nodemailer sending error:", error);
+    throw new Error(error.message || "Failed to send email via Gmail SMTP");
   }
-
-  console.log(`[ZeroBank] Email successfully delivered to: ${to} (id: ${data?.id})`);
-  return true;
 };
 
-// 1. Account Approval Email Template
+// 3. Account Approval Email (Sent when Admin approves applicant)
 exports.sendApprovalEmail = async (account, rawPassword = null) => {
   const loginPassword = rawPassword || account.password || "The password set during registration";
 
@@ -90,7 +96,7 @@ exports.sendApprovalEmail = async (account, rawPassword = null) => {
   });
 };
 
-// 2. Account Rejection Email Template
+// 4. Account Rejection Email (Sent when Admin rejects applicant)
 exports.sendRejectionEmail = async (account, reason = "Information or documentation provided did not meet verification criteria.") => {
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
