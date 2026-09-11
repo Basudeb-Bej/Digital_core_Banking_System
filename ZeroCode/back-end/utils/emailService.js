@@ -1,33 +1,56 @@
 // back-end/utils/emailService.js
 require("dotenv").config();
-const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
 
 const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-five.vercel.app";
 
-// 1. Configure Nodemailer with Gmail SMTP
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const oAuth2Client = new google.auth.OAuth2(
+  process.env.GMAIL_CLIENT_ID,
+  process.env.GMAIL_CLIENT_SECRET,
+  "https://developers.google.com/oauthplayground"
+);
+oAuth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
 
-// 2. Generic email sender used across controllers
+function buildRawMessage({ to, from, subject, html }) {
+  const messageParts = [
+    `From: "ZeroBank" <${from}>`,
+    `To: ${to}`,
+    "Content-Type: text/html; charset=utf-8",
+    "MIME-Version: 1.0",
+    `Subject: ${subject}`,
+    "",
+    html,
+  ];
+  const message = messageParts.join("\n");
+
+  return Buffer.from(message)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
 exports.sendEmail = async ({ to, subject, html }) => {
   try {
-    const info = await transporter.sendMail({
-      from: `"ZeroBank" <${process.env.EMAIL_USER}>`,
+    const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
+
+    const raw = buildRawMessage({
       to,
+      from: process.env.EMAIL_USER,
       subject,
       html,
     });
 
-    console.log(`[ZeroBank] Email successfully delivered to: ${to} (Message ID: ${info.messageId})`);
+    const result = await gmail.users.messages.send({
+      userId: "me",
+      requestBody: { raw },
+    });
+
+    console.log(`[ZeroBank] Email successfully delivered to: ${to} (Message ID: ${result.data.id})`);
     return true;
   } catch (error) {
-    console.error("[ZeroBank] Nodemailer sending error:", error);
-    throw new Error(error.message || "Failed to send email via Gmail SMTP");
+    console.error("[ZeroBank] Gmail API sending error:", error.message);
+    throw new Error(error.message || "Failed to send email via Gmail API");
   }
 };
 
