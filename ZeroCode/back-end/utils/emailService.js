@@ -6,17 +6,9 @@ const CLIENT_URL = process.env.CLIENT_URL || "https://zero-bank-five.vercel.app"
 
 emailjs.init({
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
-  privateKey: process.env.EMAILJS_PRIVATE_KEY, // required for server-side calls
+  privateKey: process.env.EMAILJS_PRIVATE_KEY,
 });
 
-function maskAccountNumber(accNo) {
-  if (!accNo) return "Generated";
-  const str = String(accNo);
-  if (str.length <= 4) return str;
-  return "•".repeat(str.length - 4) + str.slice(-4);
-}
-
-// 3. Account Approval Email (Sent when Admin approves applicant)
 exports.sendApprovalEmail = async (account) => {
   try {
     const result = await emailjs.send(
@@ -25,7 +17,7 @@ exports.sendApprovalEmail = async (account) => {
       {
         to_email: account.email,
         to_name: account.fullName,
-        masked_acc_no: maskAccountNumber(account.accNo),
+        masked_acc_no: account.accNo || "Generated",
         account_type: account.accountType || "Savings Account",
         login_url: CLIENT_URL,
       }
@@ -60,10 +52,6 @@ exports.sendRejectionEmail = async (account, reason = "Information or documentat
   }
 };
 
-// Generic sender — used by contactSupport / forgot-password flows.
-// These need their own EmailJS template (e.g. "template_generic") with
-// {{to_email}}, {{subject}}, {{message}} variables, since EmailJS is
-// template-based rather than raw-HTML based.
 exports.sendEmail = async ({ to, subject, html, text }) => {
   try {
     const result = await emailjs.send(
