@@ -9,6 +9,7 @@ emailjs.init({
   privateKey: process.env.EMAILJS_PRIVATE_KEY,
 });
 
+// Approval keeps its own dedicated template (structured account-details table).
 exports.sendApprovalEmail = async (account) => {
   try {
     const result = await emailjs.send(
@@ -31,7 +32,8 @@ exports.sendApprovalEmail = async (account) => {
   }
 };
 
-// 4. Account Rejection Email (Sent when Admin rejects applicant)
+// Rejection now uses the shared dynamic template (subject + to_name + message),
+// since EmailJS's free tier only allows 2 templates total.
 exports.sendRejectionEmail = async (account, reason = "Information or documentation provided did not meet verification criteria.") => {
   try {
     const result = await emailjs.send(
@@ -40,7 +42,8 @@ exports.sendRejectionEmail = async (account, reason = "Information or documentat
       {
         to_email: account.email,
         to_name: account.fullName,
-        reason,
+        subject: "ZeroBank - Application Update",
+        message: `After reviewing your submitted application, our verification team was unable to approve your account at this time.\n\nReason: ${reason}\n\nIf you believe this is an error or wish to provide updated documents, you may submit a fresh application on our website.`,
       }
     );
 
@@ -52,13 +55,17 @@ exports.sendRejectionEmail = async (account, reason = "Information or documentat
   }
 };
 
+// Generic sender (contact-support, forgot-password) now reuses the SAME
+// dynamic template as rejection — same variable shape (to_email, to_name,
+// subject, message), so no third template is needed.
 exports.sendEmail = async ({ to, subject, html, text }) => {
   try {
     const result = await emailjs.send(
       process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_TEMPLATE_ID_GENERIC,
+      process.env.EMAILJS_TEMPLATE_ID_REJECTION,
       {
         to_email: to,
+        to_name: "ZeroBank Admin",
         subject,
         message: text || html.replace(/<[^>]+>/g, " "), // strip tags as a fallback
       }
