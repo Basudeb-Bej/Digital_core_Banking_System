@@ -100,31 +100,6 @@ exports.getUserDashboard = async (req, res) => {
 
     const todayTransactions = todayAgg[0]?.totalToday || 0;
 
-    // If you prefer "Today Transactions" to reflect all turnover (credits + debits today):
-    /*
-    const todayAllAgg = await Transaction.aggregate([
-      {
-        $match: {
-          $or: [
-            { senderId: userObjectId },
-            { senderId: userId },
-            { recipientId: userObjectId },
-            { recipientId: userId }
-          ],
-          createdAt: { $gte: startOfToday },
-          ...validStatusCriteria,
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalToday: { $sum: { $toDouble: "$amount" } },
-        },
-      },
-    ]);
-    const todayTransactions = todayAllAgg[0]?.totalToday || 0;
-    */
-
     res.json({
       totalBalance: account.balance,
       accountType: account.accountType,
@@ -223,6 +198,11 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+/* ===========================================================
+   CONTACT SUPPORT
+   Sends plain text only — no HTML is built here. Visual layout
+   lives entirely inside EmailJS Template B.
+=========================================================== */
 exports.contactSupport = async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
@@ -231,24 +211,19 @@ exports.contactSupport = async (req, res) => {
       return res.status(400).json({ message: "Name, email, and message are required." });
     }
 
-    // Send email to ZeroBank Administrator
     await sendEmail({
       to: process.env.EMAIL_USER,
+      to_name: "ZeroBank Admin",
       subject: `[ZeroBank Support] ${subject || "Customer Inquiry"} from ${name}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
-          <h2 style="color: #0d6efd; margin-top: 0;">New Support Request</h2>
-          <p><strong>Customer Name:</strong> ${name}</p>
-          <p><strong>Customer Email:</strong> ${email}</p>
-          <p><strong>Mobile Number:</strong> ${phone || "Not provided"}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
-          <h4 style="margin-bottom: 8px;">Message / Issue Details:</h4>
-          <div style="background: #f8f9fa; padding: 14px; border-left: 4px solid #0d6efd; border-radius: 4px; white-space: pre-wrap;">
-            ${message}
-          </div>
-        </div>
-      `,
+      message: [
+        `Customer Name: ${name}`,
+        `Customer Email: ${email}`,
+        `Mobile Number: ${phone || "Not provided"}`,
+        `Subject: ${subject || "Customer Inquiry"}`,
+        ``,
+        `Message / Issue Details:`,
+        message,
+      ].join("\n"),
     });
 
     res.status(200).json({ message: "Your message has been sent to ZeroBank Support." });
@@ -360,11 +335,9 @@ exports.verifyForgotPasswordIdentity = async (req, res) => {
 
 /* ===========================================================
    FORGOT PASSWORD — STEP 2: SEND VERIFIED REQUEST
-   Requires the short-lived token issued by
-   verifyForgotPasswordIdentity above. Requests without a valid,
-   unexpired token are rejected, so this step can never be
-   reached by someone who hasn't been verified as an existing
-   ZeroBank user/admin.
+   Sends plain text only — no HTML is built here. Visual layout
+   lives entirely inside EmailJS Template B (shared with
+   rejection and contact-support).
 =========================================================== */
 exports.sendForgotPasswordRequest = async (req, res) => {
   try {
@@ -402,31 +375,30 @@ exports.sendForgotPasswordRequest = async (req, res) => {
       return res.status(404).json({ message: "We could no longer locate your verified account record." });
     }
 
+    const detailLines =
+      role === "admin"
+        ? [
+            `Admin Username: ${record.username || "N/A"}`,
+            `Aadhaar: ${record.aadhaar || "N/A"}`,
+            `PAN: ${record.pan || "N/A"}`,
+            `Date of Birth: ${record.dob || "N/A"}`,
+          ]
+        : [`Account Number: ${identifier}`];
+
     await sendEmail({
       to: process.env.EMAIL_USER,
+      to_name: "ZeroBank Admin",
       subject: `[ZeroBank Support] Verified Password Recovery Request (${role.toUpperCase()})`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
-          <h2 style="color: #0d6efd; margin-top: 0;">Verified Password Recovery Request</h2>
-          <p><strong>Role:</strong> ${role === "admin" ? "Admin" : "Customer"}</p>
-          <p><strong>Name:</strong> ${record.fullName}</p>
-          ${
-            role === "admin"
-              ? `<p><strong>Admin Username:</strong> ${record.username || "N/A"}</p>
-                 <p><strong>Aadhaar:</strong> ${record.aadhaar || "N/A"}</p>
-                 <p><strong>PAN:</strong> ${record.pan || "N/A"}</p>
-                 <p><strong>Date of Birth:</strong> ${record.dob || "N/A"}</p>`
-              : `<p><strong>Account Number:</strong> ${identifier}</p>`
-          }
-          <p><strong>Registered Email:</strong> ${record.email}</p>
-          <p><strong>Registered Phone:</strong> ${role === "admin" ? record.phone : record.mobile}</p>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;" />
-          <h4 style="margin-bottom: 8px;">Message / Issue Details:</h4>
-          <div style="background: #f8f9fa; padding: 14px; border-left: 4px solid #0d6efd; border-radius: 4px; white-space: pre-wrap;">
-            ${message || "I forgot my password and cannot access my account. Please help me reset it."}
-          </div>
-        </div>
-      `,
+      message: [
+        `Role: ${role === "admin" ? "Admin" : "Customer"}`,
+        `Name: ${record.fullName}`,
+        ...detailLines,
+        `Registered Email: ${record.email}`,
+        `Registered Phone: ${role === "admin" ? record.phone : record.mobile}`,
+        ``,
+        `Message / Issue Details:`,
+        message || "I forgot my password and cannot access my account. Please help me reset it.",
+      ].join("\n"),
     });
 
     return res.status(200).json({
