@@ -85,21 +85,15 @@ Digital_core_Banking_System/
 
 ## 🖼️ Screenshots & product tour
 
-Screenshots make a project easier to evaluate. Add real screenshots from your running application in a `docs/assets/` directory, then link them below. **No screenshots are included here yet**, so this section does not display placeholder or unrelated imagery.
-
 Suggested captures:
 - **Dashboard** — the main landing view after sign-in.
 - **Accounts** — account overview or account-opening workflow.
 - **Transactions** — transaction history or transfer form using test data.
 - **Administration** — administrative screen, if available.
 
-For example, after adding a screenshot file, use:
-
 ```md
-![Zero Bank dashboard](docs/assets/dashboard.png)
+![Zero Bank dashboard](dashboard.png)
 ```
-
-You can also add a short, optimized GIF to demonstrate a workflow. Keep animations brief, avoid real personal or financial data, and provide a static screenshot as an accessible alternative.
 
 ## ⚙️ Getting started
 
