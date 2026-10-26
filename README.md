@@ -91,9 +91,9 @@ Suggested captures:
 - **Transactions** — transaction history or transfer form using test data.
 - **Administration** — administrative screen, if available.
 
-```md
-![Zero Bank dashboard](dashboard.png)
-```
+<div align="center">
+<img src="docs/assets/dashboard.png" alt="Quantic — Conversations with context" width="100%" />
+</div>
 
 ## ⚙️ Getting started
 
