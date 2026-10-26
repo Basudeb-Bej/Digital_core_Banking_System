@@ -39,7 +39,7 @@ function Footer() {
             </p>
             <p className="small mb-2">
               In case of non-resolution of grievances, please{" "}
-              <a href="#!" className="text-decoration-underline">
+              <a href="" className="text-decoration-underline">
                 click here
               </a>
             </p>
