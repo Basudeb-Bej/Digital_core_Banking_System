@@ -92,7 +92,7 @@ Suggested captures:
 - **Administration** — administrative screen, if available.
 
 <div align="center">
-<img src="docs/assets/dashboard.png" alt="Quantic — Conversations with context" width="100%" />
+<img src="docs/assets/dashboard.png" alt="ZeroBank — Context" width="100%" />
 </div>
 
 ## ⚙️ Getting started
