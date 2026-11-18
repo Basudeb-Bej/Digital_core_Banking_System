@@ -25,7 +25,6 @@ export default function Profile() {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState("");
 
-  // Error fallback states for images
   const [imageError, setImageError] = useState(false);
   const [previewError, setPreviewError] = useState(false);
 
@@ -79,7 +78,6 @@ export default function Profile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Convert image to Base64
   const handleImageFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -103,7 +101,6 @@ export default function Profile() {
     reader.readAsDataURL(file);
   };
 
-  // Direct image change from avatar click
   const handleDirectAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -165,7 +162,9 @@ export default function Profile() {
   if (error) {
     return (
       <div className="container mt-5">
-        <Alert variant="danger" className="text-center">{error}</Alert>
+        <Alert variant="danger" className="text-center">
+          {error}
+        </Alert>
       </div>
     );
   }
@@ -185,21 +184,20 @@ export default function Profile() {
   const previewAvatarSrc = formData.image || admin?.image || defaultAvatar;
 
   return (
-    <div className="container py-4" style={{ minHeight: "100vh" }}>
+    <div className="container py-3 py-md-4" style={{ minHeight: "100vh" }}>
       {saveSuccess && (
         <Alert variant="success" onClose={() => setSaveSuccess("")} dismissible>
           {saveSuccess}
         </Alert>
       )}
 
-      <div className="card shadow-sm border-0 p-4 rounded-4" style={{ backgroundColor: "#f8f9fa" }}>
+      <div className="card shadow-sm border p-3 p-md-4 rounded-4 bg-white">
         {/* Header with Avatar and Actions */}
-        <div className="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom gap-3">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-4 border-bottom gap-3">
           <div className="d-flex align-items-center gap-3">
-            {/* Clickable Avatar Container */}
-            <div className="position-relative" style={{ width: "85px", height: "85px" }}>
+            <div className="position-relative flex-shrink-0" style={{ width: "85px", height: "85px" }}>
               <div
-                className="rounded-circle border border-2 border-white shadow-sm overflow-hidden d-flex align-items-center justify-content-center bg-white"
+                className="rounded-circle border border-2 border-white shadow-sm overflow-hidden d-flex align-items-center justify-content-center bg-light"
                 style={{ width: "85px", height: "85px" }}
               >
                 {mainAvatarSrc && !imageError ? (
@@ -224,7 +222,6 @@ export default function Profile() {
                 <FaCamera size={13} />
               </button>
 
-              {/* Hidden file input for quick avatar update */}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -234,8 +231,8 @@ export default function Profile() {
               />
             </div>
 
-            <div>
-              <h3 className="fw-bold mb-0 text-dark">
+            <div className="min-w-0">
+              <h3 className="fw-bold mb-1 text-dark text-truncate">
                 {admin?.fullName || admin?.username || "Admin Profile"}
               </h3>
               <span className="badge bg-primary text-capitalize">
@@ -244,7 +241,7 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="d-flex gap-2">
+          <div className="d-flex flex-wrap gap-2">
             <Button
               variant="outline-primary"
               className="d-flex align-items-center gap-2"
@@ -264,17 +261,17 @@ export default function Profile() {
         {/* Profile Info Cards */}
         <div className="row g-3">
           {profileDetails.map((item, idx) => (
-            <div key={idx} className="col-md-6">
-              <div className="d-flex align-items-center p-3 rounded-3 shadow-sm bg-white border">
+            <div key={idx} className="col-12 col-md-6">
+              <div className="d-flex align-items-center p-3 rounded-3 bg-light border h-100">
                 <div
-                  className="d-flex justify-content-center align-items-center rounded-circle me-3 text-primary"
-                  style={{ width: "48px", height: "48px", backgroundColor: "#e7f1ff" }}
+                  className="d-flex justify-content-center align-items-center rounded-circle me-3 text-primary flex-shrink-0"
+                  style={{ width: "46px", height: "46px", backgroundColor: "#e7f1ff" }}
                 >
                   <span className="fs-5">{item.icon}</span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="small text-muted">{item.label}</div>
-                  <div className="fw-semibold text-dark">{item.value}</div>
+                  <div className="fw-semibold text-dark text-break">{item.value}</div>
                 </div>
               </div>
             </div>
@@ -290,7 +287,6 @@ export default function Profile() {
         <Modal.Body>
           {saveError && <Alert variant="danger">{saveError}</Alert>}
           <Form onSubmit={handleSave}>
-            {/* Modal Image Upload & Preview */}
             <div className="text-center mb-4">
               <div
                 className="rounded-circle border border-2 shadow-sm mx-auto mb-2 overflow-hidden d-flex align-items-center justify-content-center bg-white"
@@ -367,11 +363,7 @@ export default function Profile() {
 
             <Form.Group className="mb-3">
               <Form.Label>Gender</Form.Label>
-              <Form.Select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-              >
+              <Form.Select name="gender" value={formData.gender} onChange={handleChange}>
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -414,11 +406,7 @@ export default function Profile() {
             </Form.Group>
 
             <div className="d-flex justify-content-end gap-2 pt-2 border-top">
-              <Button
-                variant="secondary"
-                onClick={() => setShowEdit(false)}
-                disabled={saving}
-              >
+              <Button variant="secondary" onClick={() => setShowEdit(false)} disabled={saving}>
                 Cancel
               </Button>
               <Button variant="primary" type="submit" disabled={saving}>
