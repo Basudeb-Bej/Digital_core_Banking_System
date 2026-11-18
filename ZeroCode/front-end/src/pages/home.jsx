@@ -33,9 +33,101 @@ import {
   FaFilePdf,
   FaEye,
   FaEyeSlash,
+  FaBell,
+  FaArrowRight,
 } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+/* Subtle animated fintech network canvas for Slide 0 background */
+function HeroParticlesCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let animId;
+    let width = 0;
+    let height = 0;
+
+    const resize = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      width = canvas.width = parent.clientWidth;
+      height = canvas.height = parent.clientHeight;
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const nodeCount = 28;
+    const nodes = Array.from({ length: nodeCount }, () => ({
+      x: Math.random() * (width || 800),
+      y: Math.random() * (height || 440),
+      vx: (Math.random() - 0.5) * 0.45,
+      vy: (Math.random() - 0.5) * 0.45,
+      r: Math.random() * 2 + 1.5,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        n.x += n.vx;
+        n.y += n.vy;
+
+        if (n.x < 0 || n.x > width) n.vx *= -1;
+        if (n.y < 0 || n.y > height) n.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(37, 99, 235, 0.22)";
+        ctx.fill();
+
+        for (let j = i + 1; j < nodes.length; j++) {
+          const m = nodes[j];
+          const dx = n.x - m.x;
+          const dy = n.y - m.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130) {
+            ctx.beginPath();
+            ctx.moveTo(n.x, n.y);
+            ctx.lineTo(m.x, m.y);
+            ctx.strokeStyle = `rgba(37, 99, 235, ${0.12 * (1 - dist / 130)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 1,
+      }}
+    />
+  );
+}
 
 function HomeCarousel() {
   const [showKnowMore, setShowKnowMore] = useState(false);
@@ -96,6 +188,43 @@ function HomeCarousel() {
         }
 
         /* =========================================================
+           KEYFRAMES & MICRO-ANIMATIONS
+        ========================================================= */
+        @keyframes zb-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+
+        @keyframes zb-ken-burns {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.06); }
+        }
+
+        @keyframes zb-pulse-ring {
+          0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55); }
+          70% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+        }
+
+        @keyframes zb-icon-swing {
+          0%, 100% { transform: rotate(0deg); }
+          20% { transform: rotate(12deg); }
+          40% { transform: rotate(-10deg); }
+          60% { transform: rotate(6deg); }
+          80% { transform: rotate(-4deg); }
+        }
+
+        @keyframes zb-ticker-scroll {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
+
+        @keyframes zb-slide-left {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        /* =========================================================
            HERO CAROUSEL
         ========================================================= */
         .zb-hero-carousel {
@@ -121,10 +250,17 @@ function HomeCarousel() {
         }
 
         .zb-hero-slide-split {
-          background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 60%, #e8f1ff 100%);
+          position: relative;
+          background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 55%, #e6f0ff 100%);
           min-height: 440px;
           display: flex;
           align-items: center;
+          overflow: hidden;
+        }
+
+        .zb-hero-float-img {
+          animation: zb-float 5s ease-in-out infinite;
+          filter: drop-shadow(0 14px 28px rgba(15, 23, 42, 0.12));
         }
 
         .zb-hero-title {
@@ -153,6 +289,7 @@ function HomeCarousel() {
           height: 100%;
           object-fit: cover;
           object-position: center;
+          animation: zb-ken-burns 12s ease-in-out alternate infinite;
         }
 
         .zb-hero-overlay {
@@ -160,8 +297,8 @@ function HomeCarousel() {
           inset: 0;
           background: linear-gradient(
             90deg,
-            rgba(9, 21, 43, 0.8) 0%,
-            rgba(9, 21, 43, 0.52) 55%,
+            rgba(9, 21, 43, 0.82) 0%,
+            rgba(9, 21, 43, 0.54) 55%,
             rgba(9, 21, 43, 0.25) 100%
           );
           z-index: 5;
@@ -199,13 +336,24 @@ function HomeCarousel() {
         .zb-cta-btn {
           border-radius: 10px;
           font-weight: 600;
-          padding: 0.65rem 1.5rem;
+          padding: 0.65rem 1.45rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
           transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
 
         .zb-cta-btn:hover {
-          transform: translateY(-1px);
+          transform: translateY(-2px);
           box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+        }
+
+        .zb-cta-btn .zb-btn-icon {
+          transition: transform 0.2s ease;
+        }
+
+        .zb-cta-btn:hover .zb-btn-icon {
+          transform: translateX(3px);
         }
 
         @media (max-width: 991.98px) {
@@ -244,8 +392,29 @@ function HomeCarousel() {
           display: flex;
           align-items: center;
           overflow: hidden;
-          height: 42px;
+          height: 44px;
           font-size: 0.875rem;
+        }
+
+        .zb-ticker-icon-box {
+          background: #1d4ed8;
+          color: #ffffff;
+          height: 100%;
+          padding: 0 14px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          z-index: 2;
+        }
+
+        .zb-ticker-bell {
+          animation: zb-icon-swing 2.8s ease-in-out infinite;
+        }
+
+        .zb-ticker-track-wrap {
+          flex: 1;
+          overflow: hidden;
         }
 
         .zb-ticker-track {
@@ -256,11 +425,6 @@ function HomeCarousel() {
 
         .zb-ticker-bar:hover .zb-ticker-track {
           animation-play-state: paused;
-        }
-
-        @keyframes zb-ticker-scroll {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
         }
 
         /* =========================================================
@@ -290,18 +454,26 @@ function HomeCarousel() {
           background: rgba(255, 255, 255, 0.06);
           border: 1px solid rgba(255, 255, 255, 0.08);
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.25s ease;
         }
 
         .zb-notice-item:hover {
           background: rgba(255, 255, 255, 0.12);
-          transform: translateY(-1px);
+          transform: translateY(-2px);
         }
 
         .zb-notice-item.is-active {
           background: rgba(255, 255, 255, 0.16);
           border-color: #fbbf24;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+          animation: zb-pulse-ring 2.2s infinite;
+        }
+
+        .zb-notice-pdf-icon {
+          transition: transform 0.2s ease;
+        }
+
+        .zb-notice-item:hover .zb-notice-pdf-icon {
+          transform: scale(1.18);
         }
 
         .zb-input-label {
@@ -359,30 +531,36 @@ function HomeCarousel() {
           border-radius: 16px;
           border: 1px solid #e2e8f0;
           background: #ffffff;
-          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         }
 
         .zb-product-card:hover {
-          transform: translateY(-4px);
+          transform: translateY(-5px);
           border-color: #93c5fd;
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
         }
 
         .zb-product-icon-box {
-          width: 64px;
-          height: 64px;
-          border-radius: 14px;
+          width: 68px;
+          height: 68px;
+          border-radius: 16px;
           background: #f1f5f9;
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0 auto 1rem;
           padding: 10px;
+          transition: transform 0.25s ease, background-color 0.25s ease;
+        }
+
+        .zb-product-card:hover .zb-product-icon-box {
+          transform: scale(1.08) rotate(-3deg);
+          background: #e0f2fe;
         }
 
         .zb-product-icon-box img {
-          max-height: 44px;
-          max-width: 44px;
+          max-height: 46px;
+          max-width: 46px;
           object-fit: contain;
         }
 
@@ -401,11 +579,6 @@ function HomeCarousel() {
             mask-image: none;
             -webkit-mask-image: none;
           }
-        }
-
-        @keyframes zb-slide-left {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
         }
 
         /* Prevent any modal from overflowing screen vertically */
@@ -430,9 +603,13 @@ function HomeCarousel() {
         {/* Slide 0: Small Business Loan / Know More */}
         <Carousel.Item>
           <div className="zb-hero-slide-split">
-            <div className="container">
+            <HeroParticlesCanvas />
+            <div className="container" style={{ position: "relative", zIndex: 2 }}>
               <div className="row align-items-center g-4 py-3">
-                <div className="col-lg-6 px-4 px-md-5 text-center text-lg-start" style={{ position: "relative", zIndex: 25 }}>
+                <div
+                  className="col-lg-6 px-4 px-md-5 text-center text-lg-start"
+                  style={{ position: "relative", zIndex: 25 }}
+                >
                   <h2 className="zb-hero-title mb-3">
                     <span className="text-primary">ZeroBank</span> Digital Banking
                   </h2>
@@ -450,15 +627,18 @@ function HomeCarousel() {
                       setShowKnowMore(true);
                     }}
                   >
-                    Know more
+                    Know more <FaArrowRight size={13} className="zb-btn-icon" />
                   </Button>
                 </div>
 
-                <div className="col-lg-6 text-center px-4" style={{ position: "relative", zIndex: 10 }}>
+                <div
+                  className="col-lg-6 text-center px-4"
+                  style={{ position: "relative", zIndex: 10 }}
+                >
                   <img
                     src="https://shivalikbank.com/assets/upload/bannerimage/20230207064521.png"
                     alt="ZeroBank Overview"
-                    className="img-fluid rounded-4"
+                    className="img-fluid rounded-4 zb-hero-float-img"
                     style={{ maxHeight: "330px", objectFit: "contain" }}
                   />
                 </div>
@@ -485,7 +665,7 @@ function HomeCarousel() {
                   scrollToOpenAccount();
                 }}
               >
-                Open an Account
+                Open an Account <FaArrowRight size={13} className="zb-btn-icon" />
               </Button>
             </div>
           </div>
@@ -505,7 +685,7 @@ function HomeCarousel() {
                 className="zb-cta-btn shadow-sm"
                 style={{ position: "relative", zIndex: 30 }}
               >
-                Explore Services
+                Explore Services <FaArrowRight size={13} className="zb-btn-icon" />
               </Button>
             </div>
           </div>
@@ -530,7 +710,7 @@ function HomeCarousel() {
                   setShowContact(true);
                 }}
               >
-                Contact Us
+                <FaEnvelope size={14} /> Contact Us
               </Button>
             </div>
           </div>
@@ -753,11 +933,16 @@ function SlideWorks() {
 
   return (
     <div className="slide-works zb-ticker-bar">
-      <div className="zb-ticker-track">
-        <span style={{ padding: "0 24px" }}>{tickerText}</span>
-        <span style={{ padding: "0 24px" }} aria-hidden="true">
-          {tickerText}
-        </span>
+      <div className="zb-ticker-icon-box" aria-hidden="true">
+        <FaBell size={14} className="zb-ticker-bell" />
+      </div>
+      <div className="zb-ticker-track-wrap">
+        <div className="zb-ticker-track">
+          <span style={{ padding: "0 24px" }}>{tickerText}</span>
+          <span style={{ padding: "0 24px" }} aria-hidden="true">
+            {tickerText}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -809,7 +994,10 @@ function NoticeBar({ inline = false }) {
     <div className={wrapperClass}>
       <div className="notice-card zb-notice-card p-3 p-md-4">
         <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-white border-opacity-10">
-          <h5 className="fw-bold mb-0 text-warning">What's New</h5>
+          <h5 className="fw-bold mb-0 text-warning d-flex align-items-center gap-2">
+            <FaBell size={16} className={isPlaying ? "zb-ticker-bell" : ""} />
+            What's New
+          </h5>
           <button
             type="button"
             className="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center"
@@ -845,7 +1033,10 @@ function NoticeBar({ inline = false }) {
                   <span className="fw-bold small text-white">{notice.date}</span>
                   <span className="badge bg-warning text-dark">NEW</span>
                 </div>
-                <FaFilePdf className="text-warning opacity-75 flex-shrink-0" size={14} />
+                <FaFilePdf
+                  className="text-warning opacity-75 flex-shrink-0 zb-notice-pdf-icon"
+                  size={15}
+                />
               </div>
               <p className="mb-0 small text-white text-opacity-90 lh-sm">{notice.text}</p>
             </div>
@@ -1371,7 +1562,16 @@ function CardSlider() {
         scrollable
       >
         <Modal.Header closeButton className="bg-light">
-          <Modal.Title className="fw-bold fs-5">{selectedNotice?.title}</Modal.Title>
+          <Modal.Title className="fw-bold fs-5 d-flex align-items-center gap-2">
+            {selectedNotice?.image && (
+              <img
+                src={selectedNotice.image}
+                alt={selectedNotice.title}
+                style={{ width: "26px", height: "26px", objectFit: "contain" }}
+              />
+            )}
+            {selectedNotice?.title}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body className="p-3 p-md-4">
           <p className="text-muted mb-0 lh-base">{selectedNotice?.description}</p>
