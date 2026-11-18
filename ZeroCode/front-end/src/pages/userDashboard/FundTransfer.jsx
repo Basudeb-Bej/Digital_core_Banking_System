@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FaUser, FaWallet, FaRupeeSign, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import { Card, Button, Alert } from "react-bootstrap";
 import axios from "axios";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function FundTransfer() {
@@ -121,15 +122,34 @@ export default function FundTransfer() {
   };
 
   return (
-    <div className="container mt-4 p-3">
-      <Card className="shadow-sm rounded-4 p-4 border-0 bg-light">
-        <Card.Header className="bg-primary text-white rounded-3 d-flex align-items-center mb-3 py-3">
+    <div className="container py-4" style={{ maxWidth: "860px" }}>
+      <style>{`
+        @keyframes zb-pop {
+          0% { transform: scale(0.75); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .zb-transfer-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05);
+        }
+        .zb-verified-pop {
+          animation: zb-pop 0.25s ease-out forwards;
+        }
+        .zb-tabular {
+          font-variant-numeric: tabular-nums;
+        }
+      `}</style>
+
+      <Card className="zb-transfer-card p-3 p-md-4">
+        <Card.Header className="bg-primary bg-gradient text-white rounded-3 d-flex align-items-center mb-3 py-3 border-0">
           <FaWallet className="me-2 fs-5" />
-          <h4 className="mb-0">Fund Transfer</h4>
+          <h4 className="mb-0 fw-bold">Fund Transfer</h4>
         </Card.Header>
 
         {message.text && (
-          <Alert variant={message.type} className="text-center">
+          <Alert variant={message.type} className="text-center small py-2">
             {message.text}
           </Alert>
         )}
@@ -137,15 +157,17 @@ export default function FundTransfer() {
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
             {/* Recipient Account Input */}
-            <div className="col-md-6">
+            <div className="col-12 col-md-6">
               <label className="form-label small fw-semibold">Recipient Account*</label>
               <div className="input-group">
-                <span className="input-group-text bg-white"><FaWallet /></span>
+                <span className="input-group-text bg-white">
+                  <FaWallet className="text-primary" />
+                </span>
                 <input
                   type="text"
                   name="recipientAccount"
                   placeholder="Enter 12-digit account number"
-                  className="form-control"
+                  className="form-control zb-tabular"
                   value={formData.recipientAccount}
                   onChange={handleChange}
                   onBlur={() => lookupAccount(formData.recipientAccount)}
@@ -156,15 +178,17 @@ export default function FundTransfer() {
             </div>
 
             {/* Recipient Name (Auto-filled + verified badge) */}
-            <div className="col-md-6">
+            <div className="col-12 col-md-6">
               <label className="form-label small fw-semibold">Recipient Name</label>
               <div className="input-group">
-                <span className="input-group-text bg-white"><FaUser /></span>
+                <span className="input-group-text bg-white">
+                  <FaUser className="text-secondary" />
+                </span>
                 <input
                   type="text"
                   name="recipientName"
                   placeholder={verifying ? "Checking bank records..." : "Auto-filled when account is entered"}
-                  className="form-control bg-white"
+                  className="form-control bg-light"
                   value={formData.recipientName}
                   disabled
                 />
@@ -174,7 +198,10 @@ export default function FundTransfer() {
                   </span>
                 )}
                 {formData.recipientName && !verifying && (
-                  <span className="input-group-text bg-white text-success" title="Verified Account">
+                  <span
+                    className="input-group-text bg-white text-success zb-verified-pop"
+                    title="Verified Account"
+                  >
                     <FaCheckCircle />
                   </span>
                 )}
@@ -182,15 +209,17 @@ export default function FundTransfer() {
             </div>
 
             {/* Amount */}
-            <div className="col-md-6">
+            <div className="col-12 col-md-6">
               <label className="form-label small fw-semibold">Amount (₹)*</label>
               <div className="input-group">
-                <span className="input-group-text bg-white"><FaRupeeSign /></span>
+                <span className="input-group-text bg-white">
+                  <FaRupeeSign className="text-success" />
+                </span>
                 <input
                   type="number"
                   name="amount"
                   placeholder="Enter amount"
-                  className="form-control"
+                  className="form-control zb-tabular"
                   value={formData.amount}
                   onChange={handleChange}
                   min="1"
@@ -200,7 +229,7 @@ export default function FundTransfer() {
             </div>
 
             {/* Description */}
-            <div className="col-md-6">
+            <div className="col-12 col-md-6">
               <label className="form-label small fw-semibold">Description</label>
               <input
                 type="text"
@@ -213,7 +242,7 @@ export default function FundTransfer() {
             </div>
           </div>
 
-          <div className="text-center mt-4">
+          <div className="d-grid d-sm-flex justify-content-sm-center mt-4">
             <Button
               type="submit"
               variant="primary"
