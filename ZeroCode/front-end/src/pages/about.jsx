@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import backgroundImage from "../assets/img/image5.png";
 import purposeImage from "../assets/img/image4.png";
 import breadcrumbImage from "../assets/img/image7.png";
@@ -35,6 +35,95 @@ const directors = [
   },
 ];
 
+/* Subtle animated network canvas for the Stats & Vision banner */
+function StatsParticlesCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let animId;
+    let width = 0;
+    let height = 0;
+
+    const resize = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      width = canvas.width = parent.clientWidth;
+      height = canvas.height = parent.clientHeight;
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const nodes = Array.from({ length: 24 }, () => ({
+      x: Math.random() * (width || 800),
+      y: Math.random() * (height || 400),
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 1.2,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        n.x += n.vx;
+        n.y += n.vy;
+
+        if (n.x < 0 || n.x > width) n.vx *= -1;
+        if (n.y < 0 || n.y > height) n.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(74, 222, 128, 0.32)";
+        ctx.fill();
+
+        for (let j = i + 1; j < nodes.length; j++) {
+          const m = nodes[j];
+          const dx = n.x - m.x;
+          const dy = n.y - m.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130) {
+            ctx.beginPath();
+            ctx.moveTo(n.x, n.y);
+            ctx.lineTo(m.x, m.y);
+            ctx.strokeStyle = `rgba(74, 222, 128, ${0.14 * (1 - dist / 130)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 1,
+      }}
+    />
+  );
+}
+
 function About() {
   return (
     <div className="zb-about-wrapper">
@@ -45,15 +134,39 @@ function About() {
           overflow-x: hidden;
         }
 
+        @keyframes zb-ken-burns {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.06); }
+        }
+
+        @keyframes zb-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+
+        @keyframes zb-quote-pulse {
+          0%, 100% { transform: scale(1); opacity: 0.9; }
+          50% { transform: scale(1.1); opacity: 1; }
+        }
+
         /* Breadcrumb Hero */
         .zb-about-hero {
           position: relative;
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
           min-height: clamp(220px, 32vw, 380px);
           display: flex;
           align-items: center;
+          overflow: hidden;
+        }
+
+        .zb-about-hero-bg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          animation: zb-ken-burns 12s ease-in-out alternate infinite;
+          z-index: 0;
         }
 
         .zb-about-hero-overlay {
@@ -65,6 +178,7 @@ function About() {
             rgba(9, 21, 43, 0.58) 60%,
             rgba(9, 21, 43, 0.35) 100%
           );
+          z-index: 1;
         }
 
         .zb-about-hero-content {
@@ -102,6 +216,8 @@ function About() {
         }
 
         .zb-stats-overlay {
+          position: relative;
+          z-index: 2;
           background: linear-gradient(
             135deg,
             rgba(9, 21, 43, 0.86) 0%,
@@ -116,6 +232,13 @@ function About() {
           padding: 1.25rem 0.75rem;
           height: 100%;
           backdrop-filter: blur(6px);
+          transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+        }
+
+        .zb-stat-box:hover {
+          transform: translateY(-4px);
+          border-color: rgba(74, 222, 128, 0.55);
+          background: rgba(255, 255, 255, 0.12);
         }
 
         .zb-stat-value {
@@ -140,13 +263,35 @@ function About() {
           text-align: center;
         }
 
-        /* Purpose Image */
+        .zb-vision-quote {
+          animation: zb-quote-pulse 3s ease-in-out infinite;
+        }
+
+        /* Purpose Image & Animated Icons */
         .zb-purpose-img {
           width: 100%;
           max-height: 400px;
           object-fit: cover;
           border-radius: 14px;
           border-bottom-right-radius: 48px;
+          animation: zb-float 5.5s ease-in-out infinite;
+          box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+        }
+
+        .zb-purpose-item {
+          transition: transform 0.2s ease;
+        }
+
+        .zb-purpose-item:hover {
+          transform: translateX(4px);
+        }
+
+        .zb-purpose-icon {
+          transition: transform 0.25s ease;
+        }
+
+        .zb-purpose-item:hover .zb-purpose-icon {
+          transform: scale(1.2) rotate(8deg);
         }
 
         /* Director Cards */
@@ -155,13 +300,14 @@ function About() {
           border: 1px solid #dbeafe;
           border-radius: 16px;
           overflow: hidden;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
           height: 100%;
         }
 
         .zb-director-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+          transform: translateY(-5px);
+          border-color: #93c5fd;
+          box-shadow: 0 14px 28px rgba(15, 23, 42, 0.09);
         }
 
         .zb-director-img-wrap {
@@ -177,14 +323,17 @@ function About() {
           height: 100%;
           object-fit: cover;
           object-position: top center;
+          transition: transform 0.35s ease;
+        }
+
+        .zb-director-card:hover .zb-director-img-wrap img {
+          transform: scale(1.06);
         }
       `}</style>
 
       {/* Full-Width Breadcrumb Section */}
-      <div
-        className="w-100 text-white zb-about-hero"
-        style={{ backgroundImage: `url(${breadcrumbImage})` }}
-      >
+      <div className="w-100 text-white zb-about-hero">
+        <img src={breadcrumbImage} alt="" className="zb-about-hero-bg" aria-hidden="true" />
         <div className="zb-about-hero-overlay" />
         <div className="container py-4 zb-about-hero-content">
           <h1 className="zb-about-hero-title mb-2">About Us</h1>
@@ -225,7 +374,8 @@ function About() {
           style={{ backgroundImage: `url(${backgroundImage})` }}
         >
           <div className="zb-stats-overlay p-4 p-md-5">
-            <div className="row g-4 align-items-stretch">
+            <StatsParticlesCanvas />
+            <div className="row g-4 align-items-stretch" style={{ position: "relative", zIndex: 2 }}>
               {/* Stats */}
               <div className="col-12 col-lg-6 d-flex flex-column justify-content-center text-center">
                 <h2 className="fw-bold mb-4">
@@ -271,7 +421,10 @@ function About() {
                     To be a trusted financial services provider and model employer focusing on small and underserved
                     segments through the delivery of digitally focused, affordable products and differentiated customer experience.
                   </p>
-                  <div className="text-success fw-bold" style={{ fontSize: "2.75rem", lineHeight: 1 }}>
+                  <div
+                    className="text-success fw-bold zb-vision-quote"
+                    style={{ fontSize: "2.75rem", lineHeight: 1 }}
+                  >
                     “
                   </div>
                 </div>
@@ -290,8 +443,11 @@ function About() {
               <h3 className="fw-bold mb-4 text-dark">Purpose</h3>
               <ul className="list-unstyled mb-0 d-flex flex-column gap-3">
                 {points.map((point, index) => (
-                  <li key={index} className="d-flex align-items-start gap-2">
-                    <FaCheckCircle className="text-warning flex-shrink-0 mt-1" size={16} />
+                  <li key={index} className="d-flex align-items-start gap-2 zb-purpose-item">
+                    <FaCheckCircle
+                      className="text-warning flex-shrink-0 mt-1 zb-purpose-icon"
+                      size={16}
+                    />
                     <span className="text-secondary lh-base">{point}</span>
                   </li>
                 ))}
