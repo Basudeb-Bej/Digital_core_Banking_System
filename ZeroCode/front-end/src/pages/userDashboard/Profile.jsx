@@ -10,13 +10,14 @@ import {
   FaUniversity,
   FaLanguage,
   FaCamera,
-  FaLock
+  FaLock,
 } from "react-icons/fa";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
 import defaultProfile from "../../assets/img/profile.png";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function Profile() {
@@ -104,11 +105,11 @@ export default function Profile() {
     {
       icon: <FaIdCard className="text-warning" />,
       label: "Aadhaar Number",
-      value: profile.aadhaar ? `•••• •••• ${profile.aadhaar.slice(-4)}` : "—"
+      value: profile.aadhaar ? `•••• •••• ${profile.aadhaar.slice(-4)}` : "—",
     },
     { icon: <FaIdCard className="text-secondary" />, label: "PAN Number", value: profile.pan || "—" },
     {
-      icon: <FaUniversity className="text-purple" />,
+      icon: <FaUniversity className="text-primary" />,
       label: "Account Type",
       value: profile.accountType || "Savings Account",
     },
@@ -127,7 +128,23 @@ export default function Profile() {
   const hasCustomPhoto = Boolean(profile?.photo && profile.photo.trim() !== "");
 
   return (
-    <div className="container py-5" style={{ maxWidth: "880px" }}>
+    <div className="container py-4 py-md-5" style={{ maxWidth: "880px" }}>
+      <style>{`
+        .zb-profile-tile {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .zb-profile-tile:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+        }
+        .zb-camera-btn {
+          transition: transform 0.2s ease;
+        }
+        .zb-camera-btn:hover {
+          transform: scale(1.1);
+        }
+      `}</style>
+
       {statusMessage.text && (
         <Alert
           variant={statusMessage.type}
@@ -146,13 +163,13 @@ export default function Profile() {
           style={{ height: "130px" }}
         />
 
-        <Card.Body className="p-4 pt-0 position-relative">
+        <Card.Body className="p-3 p-md-4 pt-0 position-relative">
           {/* Avatar with Camera Icon Overlay */}
           <div className="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between mb-4">
-            <div className="position-relative" style={{ marginTop: "-65px" }}>
+            <div className="position-relative" style={{ marginTop: "-60px", width: "fit-content" }}>
               <div
                 className="position-relative rounded-circle border border-4 border-white shadow overflow-hidden d-flex align-items-center justify-content-center bg-light"
-                style={{ width: "120px", height: "120px" }}
+                style={{ width: "116px", height: "116px" }}
               >
                 {hasCustomPhoto && !imageError ? (
                   <img
@@ -169,7 +186,6 @@ export default function Profile() {
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 ) : (
-                  /* Fallback icon if no default image asset is available */
                   <FaUser size={52} className="text-secondary opacity-75" />
                 )}
 
@@ -185,7 +201,7 @@ export default function Profile() {
 
               {/* Upload Action Button Overlay */}
               <label
-                className="btn btn-sm btn-primary rounded-circle position-absolute d-flex align-items-center justify-content-center shadow-sm"
+                className="btn btn-sm btn-primary rounded-circle position-absolute d-flex align-items-center justify-content-center shadow-sm zb-camera-btn"
                 style={{
                   bottom: "4px",
                   right: "4px",
@@ -215,25 +231,28 @@ export default function Profile() {
 
           <div>
             <h4 className="fw-bold mb-1">{profile.fullName || "User Profile"}</h4>
-            <p className="text-muted small mb-4">{profile.email}</p>
+            <p className="text-muted small mb-4 text-break">{profile.email}</p>
           </div>
 
           {/* User Details Grid */}
           <div className="row g-3">
             {profileDetails.map((item, idx) => (
-              <div key={idx} className="col-md-6">
-                <div className="d-flex align-items-center p-3 rounded-3 bg-light border h-100">
+              <div key={idx} className="col-12 col-md-6">
+                <div className="d-flex align-items-center p-3 rounded-3 bg-light border h-100 zb-profile-tile">
                   <div
-                    className="d-flex align-items-center justify-content-center rounded-3 bg-white shadow-sm me-3"
-                    style={{ width: "44px", height: "44px", flexShrink: 0 }}
+                    className="d-flex align-items-center justify-content-center rounded-3 bg-white shadow-sm me-3 flex-shrink-0"
+                    style={{ width: "44px", height: "44px" }}
                   >
                     {item.icon}
                   </div>
-                  <div className="text-truncate">
-                    <div className="text-muted" style={{ fontSize: "0.75rem", textTransform: "uppercase" }}>
+                  <div className="min-w-0">
+                    <div
+                      className="text-muted"
+                      style={{ fontSize: "0.75rem", textTransform: "uppercase" }}
+                    >
                       {item.label}
                     </div>
-                    <div className="fw-semibold text-dark text-truncate">{item.value}</div>
+                    <div className="fw-semibold text-dark text-break">{item.value}</div>
                   </div>
                 </div>
               </div>
@@ -241,7 +260,7 @@ export default function Profile() {
           </div>
 
           {/* Actions */}
-          <div className="d-flex justify-content-end mt-4 pt-3 border-top">
+          <div className="d-grid d-sm-flex justify-content-sm-end mt-4 pt-3 border-top">
             <Button variant="outline-primary" href="/userDashboard/settings">
               Change Password & Security
             </Button>
