@@ -61,11 +61,22 @@ export default function Sidebar() {
           color: #ffffff !important;
         }
         @media (max-width: 991.98px) {
+          body {
+            padding-top: 64px;
+          }
           .zb-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             width: 100%;
             min-height: auto;
+            max-height: 100vh;
+            overflow-y: auto;
+            z-index: 1040;
             border-right: none;
             border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
           }
         }
       `}</style>
