@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaUserEdit, FaTrashAlt, FaPlus, FaUsers } from "react-icons/fa";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function ManageUsers() {
@@ -15,7 +16,6 @@ export default function ManageUsers() {
     role: "user",
   });
 
-  // Helper to get auth headers (adjust "token" or "adminToken" to your storage key)
   const getAuthConfig = () => {
     const token = localStorage.getItem("token") || localStorage.getItem("adminToken");
     return {
@@ -25,15 +25,10 @@ export default function ManageUsers() {
     };
   };
 
-  // Fetch Data
   const fetchData = async () => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/admin/${entityType}`,
-        getAuthConfig()
-      );
+      const res = await axios.get(`${BASE_URL}/api/admin/${entityType}`, getAuthConfig());
 
-      // Filter only users (exclude employee and admin)
       const filtered = Array.isArray(res.data)
         ? res.data.filter((item) => item.role === "user")
         : [];
@@ -48,11 +43,9 @@ export default function ManageUsers() {
     fetchData();
   }, [entityType]);
 
-  // Handle input
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Create / Update record
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -63,7 +56,6 @@ export default function ManageUsers() {
 
       await axios[method](url, formData, getAuthConfig());
 
-      // Reset form
       setFormData({ username: "", email: "", password: "", role: "user" });
       setEditingItem(null);
       fetchData();
@@ -72,7 +64,6 @@ export default function ManageUsers() {
     }
   };
 
-  // Edit record
   const handleEdit = (item) => {
     setEditingItem(item);
     setFormData({
@@ -83,7 +74,6 @@ export default function ManageUsers() {
     });
   };
 
-  // Cancel edit
   const handleCancelEdit = () => {
     setEditingItem(null);
     setFormData({
@@ -94,14 +84,10 @@ export default function ManageUsers() {
     });
   };
 
-  // Delete record
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this record?")) return;
     try {
-      await axios.delete(
-        `${BASE_URL}/api/admin/${entityType}/${id}`,
-        getAuthConfig()
-      );
+      await axios.delete(`${BASE_URL}/api/admin/${entityType}/${id}`, getAuthConfig());
       fetchData();
     } catch (err) {
       console.error("Error deleting record:", err);
@@ -109,21 +95,19 @@ export default function ManageUsers() {
   };
 
   return (
-    <div className="container py-4">
+    <div className="container py-3 py-md-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="fw-bold mb-0">
-          <FaUsers className="me-2 text-primary" />
+        <h3 className="fw-bold mb-0 d-flex align-items-center gap-2">
+          <FaUsers className="text-primary" />
           Manage Users
-        </h2>
+        </h3>
       </div>
 
       {/* Add / Edit Form */}
-      <div className="card p-3 mb-4 shadow-sm rounded-4">
-        <h5 className="fw-semibold">
-          {editingItem ? "Edit User" : "Add New User"}
-        </h5>
-        <form onSubmit={handleSubmit} className="row g-2 mt-2">
-          <div className="col-md-3">
+      <div className="card p-3 p-md-4 mb-4 shadow-sm border rounded-4">
+        <h5 className="fw-semibold mb-3">{editingItem ? "Edit User" : "Add New User"}</h5>
+        <form onSubmit={handleSubmit} className="row g-2">
+          <div className="col-12 col-sm-6 col-lg-3">
             <input
               type="text"
               name="username"
@@ -135,7 +119,7 @@ export default function ManageUsers() {
             />
           </div>
 
-          <div className="col-md-3">
+          <div className="col-12 col-sm-6 col-lg-3">
             <input
               type="email"
               name="email"
@@ -147,7 +131,7 @@ export default function ManageUsers() {
             />
           </div>
 
-          <div className="col-md-3">
+          <div className="col-12 col-sm-6 col-lg-4">
             <input
               type="password"
               name="password"
@@ -159,7 +143,7 @@ export default function ManageUsers() {
             />
           </div>
 
-          <div className="col-md-2 d-flex gap-1">
+          <div className="col-12 col-sm-6 col-lg-2 d-flex gap-2">
             <button type="submit" className="btn btn-primary w-100">
               {editingItem ? (
                 <>
@@ -186,53 +170,61 @@ export default function ManageUsers() {
       </div>
 
       {/* Data Table */}
-      <div className="card p-3 shadow-sm rounded-4">
-        <h5 className="mb-2">All Users</h5>
-        <table className="table table-striped mt-2">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Created</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.length > 0 ? (
-              records.map((item, index) => (
-                <tr key={item._id}>
-                  <td>{index + 1}</td>
-                  <td>{item.username}</td>
-                  <td>{item.email}</td>
-                  <td>{item.role}</td>
-                  <td>{new Date(item.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-outline-warning me-2"
-                      onClick={() => handleEdit(item)}
-                    >
-                      <FaUserEdit />
-                    </button>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDelete(item._id)}
-                    >
-                      <FaTrashAlt />
-                    </button>
+      <div className="card p-3 p-md-4 shadow-sm border rounded-4">
+        <h5 className="mb-3 fw-semibold">All Users</h5>
+        <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0">
+            <thead className="table-light">
+              <tr>
+                <th className="text-nowrap">#</th>
+                <th className="text-nowrap">Username</th>
+                <th className="text-nowrap">Email</th>
+                <th className="text-nowrap">Role</th>
+                <th className="text-nowrap">Created</th>
+                <th className="text-nowrap">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.length > 0 ? (
+                records.map((item, index) => (
+                  <tr key={item._id}>
+                    <td>{index + 1}</td>
+                    <td className="text-nowrap fw-semibold">{item.username}</td>
+                    <td className="text-nowrap">{item.email}</td>
+                    <td className="text-nowrap">{item.role}</td>
+                    <td className="text-nowrap">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="text-nowrap">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-warning me-2"
+                        onClick={() => handleEdit(item)}
+                        aria-label="Edit user"
+                      >
+                        <FaUserEdit />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleDelete(item._id)}
+                        aria-label="Delete user"
+                      >
+                        <FaTrashAlt />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center text-muted py-4">
+                    No users found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center text-muted">
-                  No users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
