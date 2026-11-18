@@ -3,6 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Alert, Spinner } from "react-bootstrap";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function ChangePassword() {
@@ -69,9 +70,9 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "500px" }}>
-      <div className="card shadow-sm border-0 rounded-4">
-        <div className="card-body p-4">
+    <div className="container py-4 py-md-5" style={{ maxWidth: "500px" }}>
+      <div className="card shadow-sm border rounded-4">
+        <div className="card-body p-3 p-md-4">
           <h4 className="fw-bold text-center mb-4">Change Password</h4>
 
           {alert.message && (
@@ -86,7 +87,7 @@ export default function ChangePassword() {
 
           {/* Old Password */}
           <div className="mb-3">
-            <label className="form-label fw-semibold">Old Password</label>
+            <label className="form-label small fw-semibold">Old Password</label>
             <div className="input-group">
               <input
                 type={show.old ? "text" : "password"}
@@ -100,6 +101,7 @@ export default function ChangePassword() {
                 type="button"
                 className="btn btn-outline-secondary"
                 onClick={() => setShow({ ...show, old: !show.old })}
+                aria-label={show.old ? "Hide old password" : "Show old password"}
               >
                 {show.old ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -108,7 +110,7 @@ export default function ChangePassword() {
 
           {/* New Password */}
           <div className="mb-3">
-            <label className="form-label fw-semibold">New Password</label>
+            <label className="form-label small fw-semibold">New Password</label>
             <div className="input-group">
               <input
                 type={show.new ? "text" : "password"}
@@ -122,6 +124,7 @@ export default function ChangePassword() {
                 type="button"
                 className="btn btn-outline-secondary"
                 onClick={() => setShow({ ...show, new: !show.new })}
+                aria-label={show.new ? "Hide new password" : "Show new password"}
               >
                 {show.new ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -130,7 +133,7 @@ export default function ChangePassword() {
 
           {/* Confirm Password */}
           <div className="mb-4">
-            <label className="form-label fw-semibold">Confirm New Password</label>
+            <label className="form-label small fw-semibold">Confirm New Password</label>
             <div className="input-group">
               <input
                 type={show.confirm ? "text" : "password"}
@@ -144,6 +147,7 @@ export default function ChangePassword() {
                 type="button"
                 className="btn btn-outline-secondary"
                 onClick={() => setShow({ ...show, confirm: !show.confirm })}
+                aria-label={show.confirm ? "Hide confirm password" : "Show confirm password"}
               >
                 {show.confirm ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -151,7 +155,8 @@ export default function ChangePassword() {
           </div>
 
           <button
-            className="btn btn-primary w-100 py-2 fw-semibold"
+            type="button"
+            className="btn btn-primary w-100 py-2 fw-semibold rounded-3"
             onClick={handleSubmit}
             disabled={loading}
           >
