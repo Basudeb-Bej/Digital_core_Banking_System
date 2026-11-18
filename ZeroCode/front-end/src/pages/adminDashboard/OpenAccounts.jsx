@@ -1,4 +1,4 @@
-//front-end/src/pages/adminDashboard/OpenAccounts.jsx
+// front-end/src/pages/adminDashboard/OpenAccounts.jsx
 import React, { useEffect, useState } from "react";
 import adminApi from "../../api/adminApi";
 import { Table, Spinner, InputGroup, Form } from "react-bootstrap";
@@ -36,17 +36,25 @@ export default function OpenAccounts() {
     );
   });
 
-  if (loading) return <div className="text-center mt-5"><Spinner animation="border" /> Loading...</div>;
+  if (loading) {
+    return (
+      <div className="text-center mt-5 py-5">
+        <Spinner animation="border" variant="success" /> Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="container mt-5">
-      <h3 className="mb-4 text-center">
-        <FaUserCheck className="me-2" /> Admin — Active Accounts
-      </h3>
+    <div className="container py-3 py-md-4">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <h3 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+          <FaUserCheck className="text-success flex-shrink-0" /> Admin — Active Accounts
+        </h3>
 
-      <div className="d-flex justify-content-end mb-3">
-        <InputGroup style={{ maxWidth: "350px" }}>
-          <InputGroup.Text><FaSearch /></InputGroup.Text>
+        <InputGroup style={{ maxWidth: "350px" }} className="w-100">
+          <InputGroup.Text className="bg-white">
+            <FaSearch className="text-muted" />
+          </InputGroup.Text>
           <Form.Control
             type="text"
             placeholder="Search..."
@@ -56,30 +64,34 @@ export default function OpenAccounts() {
         </InputGroup>
       </div>
 
-      <Table striped bordered hover responsive className="align-middle">
-        <thead className="table-success text-center">
-          <tr>
-            <th>#</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Mobile</th>
-            <th>Account Type</th>
-            <th>Approved On</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAccounts.map((acc, i) => (
-            <tr key={acc._id}>
-              <td className="text-center">{i + 1}</td>
-              <td className="text-center">{acc.fullName}</td>
-              <td className="text-center">{acc.email}</td>
-              <td className="text-center">{acc.mobile}</td>
-              <td className="text-center">{acc.accountType}</td>
-              <td className="text-center">{new Date(acc.updatedAt).toLocaleDateString()}</td>
+      <div className="card border shadow-sm rounded-4 overflow-hidden">
+        <Table striped hover responsive className="align-middle mb-0">
+          <thead className="table-success text-center">
+            <tr>
+              <th className="text-nowrap">#</th>
+              <th className="text-nowrap">Full Name</th>
+              <th className="text-nowrap">Email</th>
+              <th className="text-nowrap">Mobile</th>
+              <th className="text-nowrap">Account Type</th>
+              <th className="text-nowrap">Approved On</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {filteredAccounts.map((acc, i) => (
+              <tr key={acc._id}>
+                <td className="text-center">{i + 1}</td>
+                <td className="text-center fw-semibold text-nowrap">{acc.fullName}</td>
+                <td className="text-center text-nowrap">{acc.email}</td>
+                <td className="text-center text-nowrap">{acc.mobile}</td>
+                <td className="text-center text-nowrap">{acc.accountType}</td>
+                <td className="text-center text-nowrap">
+                  {new Date(acc.updatedAt).toLocaleDateString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
       {filteredAccounts.length === 0 && (
         <p className="text-center text-muted mt-3">No open accounts found</p>
