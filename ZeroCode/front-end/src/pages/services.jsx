@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaArrowRight } from "react-icons/fa";
 import { Modal, Button } from "react-bootstrap";
@@ -8,6 +8,95 @@ import breakcrumbImage1 from "../assets/img/image10.png";
 import breadcrumbImage2 from "../assets/img/image9.png";
 import breadcrumbImage3 from "../assets/img/image6.png";
 import purposeImage from "../assets/img/image11.png";
+
+/* Subtle animated particle network for hero banner */
+function HeroParticlesCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let animId;
+    let width = 0;
+    let height = 0;
+
+    const resize = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      width = canvas.width = parent.clientWidth;
+      height = canvas.height = parent.clientHeight;
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const nodes = Array.from({ length: 22 }, () => ({
+      x: Math.random() * (width || 800),
+      y: Math.random() * (height || 340),
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 1.8 + 1.2,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        n.x += n.vx;
+        n.y += n.vy;
+
+        if (n.x < 0 || n.x > width) n.vx *= -1;
+        if (n.y < 0 || n.y > height) n.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(147, 197, 253, 0.35)";
+        ctx.fill();
+
+        for (let j = i + 1; j < nodes.length; j++) {
+          const m = nodes[j];
+          const dx = n.x - m.x;
+          const dy = n.y - m.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(n.x, n.y);
+            ctx.lineTo(m.x, m.y);
+            ctx.strokeStyle = `rgba(147, 197, 253, ${0.16 * (1 - dist / 120)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 1,
+      }}
+    />
+  );
+}
 
 function Services() {
   const navigate = useNavigate();
@@ -61,15 +150,34 @@ function Services() {
           overflow-x: hidden;
         }
 
+        @keyframes zb-ken-burns {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.06); }
+        }
+
+        @keyframes zb-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-7px); }
+        }
+
         /* Breadcrumb Hero */
         .zb-services-hero {
           position: relative;
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
           min-height: clamp(220px, 32vw, 380px);
           display: flex;
           align-items: center;
+          overflow: hidden;
+        }
+
+        .zb-services-hero-bg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          animation: zb-ken-burns 12s ease-in-out alternate infinite;
+          z-index: 0;
         }
 
         .zb-services-hero-overlay {
@@ -81,6 +189,7 @@ function Services() {
             rgba(9, 21, 43, 0.58) 60%,
             rgba(9, 21, 43, 0.35) 100%
           );
+          z-index: 1;
         }
 
         .zb-services-hero-content {
@@ -112,6 +221,24 @@ function Services() {
           object-fit: cover;
           border-radius: 14px;
           border-bottom-right-radius: 48px;
+          animation: zb-float 5.5s ease-in-out infinite;
+          box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+        }
+
+        .zb-service-point {
+          transition: transform 0.2s ease;
+        }
+
+        .zb-service-point:hover {
+          transform: translateX(4px);
+        }
+
+        .zb-service-point-icon {
+          transition: transform 0.25s ease;
+        }
+
+        .zb-service-point:hover .zb-service-point-icon {
+          transform: scale(1.2) rotate(8deg);
         }
 
         /* Service Cards */
@@ -121,13 +248,13 @@ function Services() {
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         }
 
         .zb-service-card:hover {
-          transform: translateY(-4px);
+          transform: translateY(-5px);
           border-color: #93c5fd;
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
         }
 
         .zb-service-card-img-wrap {
@@ -141,11 +268,11 @@ function Services() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 0.3s ease;
+          transition: transform 0.35s ease;
         }
 
         .zb-service-card:hover .zb-service-card-img-wrap img {
-          transform: scale(1.03);
+          transform: scale(1.06);
         }
 
         .zb-arrow-btn {
@@ -155,6 +282,25 @@ function Services() {
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .zb-arrow-btn svg {
+          transition: transform 0.2s ease;
+        }
+
+        .zb-arrow-btn:hover svg {
+          transform: translateX(2px);
+        }
+
+        .zb-learn-btn {
+          border-radius: 10px;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .zb-learn-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(13, 110, 253, 0.22);
         }
 
         .modal-dialog-scrollable .modal-content {
@@ -165,11 +311,10 @@ function Services() {
       `}</style>
 
       {/* Breadcrumb */}
-      <div
-        className="w-100 text-white zb-services-hero"
-        style={{ backgroundImage: `url(${breadcrumbImage})` }}
-      >
+      <div className="w-100 text-white zb-services-hero">
+        <img src={breadcrumbImage} alt="" className="zb-services-hero-bg" aria-hidden="true" />
         <div className="zb-services-hero-overlay" />
+        <HeroParticlesCanvas />
         <div className="container py-4 zb-services-hero-content">
           <h1 className="zb-services-hero-title mb-2">Services</h1>
           <nav aria-label="breadcrumb">
@@ -198,8 +343,11 @@ function Services() {
               <h3 className="fw-bold mb-4 text-dark">Our Services</h3>
               <ul className="list-unstyled mb-0 d-flex flex-column gap-3">
                 {points.map((point, index) => (
-                  <li key={index} className="d-flex align-items-start gap-2">
-                    <FaCheckCircle className="text-warning flex-shrink-0 mt-1" size={16} />
+                  <li key={index} className="d-flex align-items-start gap-2 zb-service-point">
+                    <FaCheckCircle
+                      className="text-warning flex-shrink-0 mt-1 zb-service-point-icon"
+                      size={16}
+                    />
                     <span className="text-secondary lh-base">{point}</span>
                   </li>
                 ))}
@@ -223,8 +371,7 @@ function Services() {
                   <div className="d-flex justify-content-between align-items-center gap-2 mt-4">
                     <button
                       type="button"
-                      className="btn btn-primary px-4 fw-semibold"
-                      style={{ borderRadius: "10px" }}
+                      className="btn btn-primary px-4 fw-semibold zb-learn-btn"
                       onClick={() => handleLearnMore(service)}
                     >
                       Learn More
