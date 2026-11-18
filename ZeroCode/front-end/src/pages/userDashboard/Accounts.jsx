@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, Button, Badge, Spinner, Alert } from "react-bootstrap";
 import {
-  FaRegCreditCard,
   FaUniversity,
   FaRupeeSign,
   FaMapMarkerAlt,
@@ -15,8 +14,9 @@ import {
   FaPhoneAlt,
   FaEnvelope,
   FaUser,
-  FaCity
+  FaCity,
 } from "react-icons/fa";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function AccountDetails() {
@@ -27,33 +27,77 @@ export default function AccountDetails() {
   const [downloading, setDownloading] = useState(false);
 
   const email = localStorage.getItem("email") || localStorage.getItem("username");
+  const storedAccNo = localStorage.getItem("accNo");
 
   useEffect(() => {
-    if (!email) {
+    if (!email && !storedAccNo) {
       setError("No user credentials found. Please log in again.");
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    axios
-      .get(`${BASE_URL}/api/accounts/email/${email}`)
-      .then((res) => {
-        setAccount(res.data);
-        setError("");
-      })
-      .catch(() => {
-        // Fallback: try by account number if email lookup failed
-        axios
-          .get(`${BASE_URL}/api/accounts/${email}`)
-          .then((res) => {
+    let isMounted = true;
+
+    const fetchAccount = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        if (email && email.includes("@")) {
+          const res = await axios.get(
+            `${BASE_URL}/api/accounts/email/${encodeURIComponent(email.trim().toLowerCase())}`
+          );
+          if (isMounted) {
+            setAccount(res.data);
+          }
+          return;
+        }
+      } catch (err) {
+        if (err?.response?.status === 403) {
+          if (isMounted) {
+            setAccount(null);
+            setError(
+              err.response?.data?.message ||
+                "Your account is currently not active. Please contact support."
+            );
+          }
+          return;
+        }
+      }
+
+      // Fallback by account number (only if we have a non-email identifier)
+      const accIdentifier = storedAccNo || (!email?.includes("@") ? email : null);
+      if (accIdentifier) {
+        try {
+          const res = await axios.get(`${BASE_URL}/api/accounts/${accIdentifier}`);
+          if (isMounted) {
             setAccount(res.data.account || res.data);
-            setError("");
-          })
-          .catch(() => setError("Account details not found for: " + email));
-      })
-      .finally(() => setLoading(false));
-  }, [email]);
+          }
+          return;
+        } catch (fallbackErr) {
+          if (isMounted) {
+            setError(
+              fallbackErr?.response?.data?.message ||
+                `Account details not found for: ${email || accIdentifier}`
+            );
+          }
+          return;
+        }
+      }
+
+      if (isMounted) {
+        setError(`Account details not found for: ${email}`);
+      }
+    };
+
+    fetchAccount().finally(() => {
+      if (isMounted) setLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [email, storedAccNo]);
 
   const copyAccountNumber = () => {
     if (account?.accNo) {
@@ -101,35 +145,40 @@ export default function AccountDetails() {
     );
   }
 
-  if (error) {
+  if (error || !account) {
     return (
       <div className="container mt-4">
-        <Alert variant="danger" className="text-center">{error}</Alert>
+        <Alert variant="danger" className="text-center">
+          {error || "Account details could not be loaded."}
+        </Alert>
       </div>
     );
   }
 
   const details = [
-    { icon: <FaUser />, label: "Full Name", value: account.fullName || "N/A" },
-    { icon: <FaEnvelope />, label: "Email Address", value: account.email || "N/A" },
-    { icon: <FaPhoneAlt />, label: "Mobile Number", value: account.mobile || "N/A" },
-    { icon: <FaUniversity />, label: "Account Type", value: account.accountType || "Savings" },
-    { icon: <FaCity />, label: "City", value: account.city || "N/A" },
-    { icon: <FaMapMarkerAlt />, label: "State", value: account.state || "N/A" },
+    { icon: <FaUser />, label: "Full Name", value: account?.fullName || "N/A" },
+    { icon: <FaEnvelope />, label: "Email Address", value: account?.email || "N/A" },
+    { icon: <FaPhoneAlt />, label: "Mobile Number", value: account?.mobile || "N/A" },
+    { icon: <FaUniversity />, label: "Account Type", value: account?.accountType || "Savings" },
+    { icon: <FaCity />, label: "City", value: account?.city || "N/A" },
+    { icon: <FaMapMarkerAlt />, label: "State", value: account?.state || "N/A" },
     {
       icon: <FaCalendarAlt />,
       label: "Opening Date",
-      value: account.createdAt ? new Date(account.createdAt).toLocaleDateString() : "N/A"
+      value: account?.createdAt ? new Date(account.createdAt).toLocaleDateString() : "N/A",
     },
     {
-      icon: account.status === "active" ? <FaCheckCircle /> : <FaTimesCircle />,
+      icon: account?.status === "active" ? <FaCheckCircle /> : <FaTimesCircle />,
       label: "Account Status",
       value: (
-        <Badge bg={account.status === "active" ? "success" : "danger"} className="text-uppercase px-2 py-1">
-          {account.status}
+        <Badge
+          bg={account?.status === "active" ? "success" : "danger"}
+          className="text-uppercase px-2 py-1"
+        >
+          {account?.status || "unknown"}
         </Badge>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -137,26 +186,31 @@ export default function AccountDetails() {
       {/* Visual Bank Card & Balance Header */}
       <div className="row g-4 mb-4">
         {/* Virtual Card Preview */}
-        <div className="col-lg-6">
+        <div className="col-12 col-lg-6">
           <div
-            className="p-4 rounded-4 shadow text-white d-flex flex-column justify-content-between position-relative overflow-hidden"
+            className="p-4 rounded-4 shadow text-white d-flex flex-column justify-content-between position-relative overflow-hidden h-100"
             style={{
               background: "linear-gradient(135deg, #0d6efd 0%, #002b66 100%)",
-              minHeight: "210px"
+              minHeight: "210px",
             }}
           >
             <div className="d-flex justify-content-between align-items-center">
               <span className="fw-bold fs-5 tracking-wide">ZeroBank</span>
-              <Badge bg={account.status === "active" ? "success" : "warning"}>
-                {account.accountType || "Debit"}
+              <Badge bg={account?.status === "active" ? "success" : "warning"}>
+                {account?.accountType || "Debit"}
               </Badge>
             </div>
 
             <div className="my-3">
               <small className="text-white-50">Account Number</small>
-              <div className="d-flex align-items-center gap-2">
-                <h4 className="font-monospace mb-0 letter-spacing-1">
-                  {account.accNo ? account.accNo.replace(/(\d{4})/g, "$1 ").trim() : "•••• •••• ••••"}
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                <h4
+                  className="font-monospace mb-0"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                >
+                  {account?.accNo
+                    ? account.accNo.replace(/(\d{4})/g, "$1 ").trim()
+                    : "•••• •••• ••••"}
                 </h4>
                 <Button
                   variant="link"
@@ -170,21 +224,23 @@ export default function AccountDetails() {
               </div>
             </div>
 
-            <div className="d-flex justify-content-between align-items-end">
-              <div>
+            <div className="d-flex justify-content-between align-items-end gap-2">
+              <div className="text-truncate">
                 <small className="text-white-50">Account Holder</small>
-                <div className="fw-semibold text-uppercase">{account.fullName}</div>
+                <div className="fw-semibold text-uppercase text-truncate">
+                  {account?.fullName || "N/A"}
+                </div>
               </div>
-              <div className="text-end">
+              <div className="text-end flex-shrink-0">
                 <small className="text-white-50">Status</small>
-                <div className="fw-semibold text-capitalize">{account.status}</div>
+                <div className="fw-semibold text-capitalize">{account?.status || "N/A"}</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Current Balance Banner */}
-        <div className="col-lg-6">
+        <div className="col-12 col-lg-6">
           <Card className="h-100 shadow-sm border-0 rounded-4 p-4 d-flex flex-column justify-content-between bg-light">
             <div>
               <div className="d-flex justify-content-between align-items-center">
@@ -193,11 +249,14 @@ export default function AccountDetails() {
                   <FaRupeeSign size={20} />
                 </span>
               </div>
-              <h1 className="display-6 fw-bold text-dark my-2">
-                ₹{Number(account.balance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              <h1
+                className="display-6 fw-bold text-dark my-2"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                ₹{Number(account?.balance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </h1>
               <p className="small text-muted mb-0">
-                Primary Account • {account.accNo}
+                Primary Account • {account?.accNo || "N/A"}
               </p>
             </div>
 
@@ -206,7 +265,7 @@ export default function AccountDetails() {
                 variant="primary"
                 className="w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3"
                 onClick={downloadStatement}
-                disabled={downloading}
+                disabled={downloading || !account?.accNo}
               >
                 {downloading ? (
                   <>
@@ -224,21 +283,21 @@ export default function AccountDetails() {
       </div>
 
       {/* Account Profile Information Grid */}
-      <Card className="shadow-sm border-0 rounded-4 p-4">
+      <Card className="shadow-sm border-0 rounded-4 p-3 p-md-4">
         <h5 className="fw-bold mb-3 text-dark">Detailed Information</h5>
         <div className="row g-3">
           {details.map((item, i) => (
-            <div key={i} className="col-md-6">
-              <div className="d-flex align-items-center p-3 rounded-3 border bg-white shadow-xs">
+            <div key={i} className="col-12 col-md-6">
+              <div className="d-flex align-items-center p-3 rounded-3 border bg-white shadow-xs h-100">
                 <div
-                  className="d-flex justify-content-center align-items-center rounded-circle me-3 text-primary"
+                  className="d-flex justify-content-center align-items-center rounded-circle me-3 text-primary flex-shrink-0"
                   style={{ width: "45px", height: "45px", backgroundColor: "#e7f1ff" }}
                 >
                   <span className="fs-5">{item.icon}</span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <small className="text-muted d-block">{item.label}</small>
-                  <div className="fw-semibold text-dark">{item.value}</div>
+                  <div className="fw-semibold text-dark text-break">{item.value}</div>
                 </div>
               </div>
             </div>
