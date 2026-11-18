@@ -30,14 +30,9 @@ import {
   FaPaperPlane,
   FaShieldAlt,
   FaClock,
-  FaArrowRight,
-  FaCheckCircle,
-  FaLock,
   FaFilePdf,
-  FaExternalLinkAlt,
   FaEye,
   FaEyeSlash,
-  FaBullhorn,
 } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -111,7 +106,13 @@ function HomeCarousel() {
         .zb-hero-carousel .carousel-control-next {
           width: 48px !important;
           z-index: 20;
-          opacity: 0.85;
+          pointer-events: none;
+        }
+
+        .zb-hero-carousel .carousel-control-prev-icon,
+        .zb-hero-carousel .carousel-control-next-icon {
+          pointer-events: auto;
+          cursor: pointer;
         }
 
         .zb-hero-carousel .carousel-indicators {
@@ -120,43 +121,29 @@ function HomeCarousel() {
         }
 
         .zb-hero-slide-split {
-          background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 55%, #e8f1ff 100%);
-          min-height: 460px;
+          background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 60%, #e8f1ff 100%);
+          min-height: 440px;
           display: flex;
           align-items: center;
         }
 
-        .zb-hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          border-radius: 999px;
-          background: rgba(13, 110, 253, 0.1);
-          color: #0a58ca;
-          font-size: 0.78rem;
-          font-weight: 600;
-          letter-spacing: 0.02em;
-          margin-bottom: 1rem;
-        }
-
         .zb-hero-title {
-          font-size: clamp(1.65rem, 3.2vw, 2.75rem);
+          font-size: clamp(1.65rem, 3.2vw, 2.65rem);
           font-weight: 800;
-          line-height: 1.18;
+          line-height: 1.2;
           letter-spacing: -0.02em;
           color: #0f172a;
         }
 
         .zb-hero-subtitle {
-          font-size: clamp(0.95rem, 1.4vw, 1.125rem);
+          font-size: clamp(0.95rem, 1.4vw, 1.15rem);
           color: #475569;
           line-height: 1.6;
         }
 
         .zb-hero-img-slide {
           position: relative;
-          height: 460px;
+          height: 440px;
           width: 100%;
           overflow: hidden;
         }
@@ -173,9 +160,9 @@ function HomeCarousel() {
           inset: 0;
           background: linear-gradient(
             90deg,
-            rgba(9, 21, 43, 0.82) 0%,
-            rgba(9, 21, 43, 0.55) 55%,
-            rgba(9, 21, 43, 0.3) 100%
+            rgba(9, 21, 43, 0.8) 0%,
+            rgba(9, 21, 43, 0.52) 55%,
+            rgba(9, 21, 43, 0.25) 100%
           );
           z-index: 5;
         }
@@ -191,10 +178,11 @@ function HomeCarousel() {
           text-align: left;
           padding: 2rem 4.5rem;
           max-width: 720px;
+          pointer-events: auto;
         }
 
         .zb-hero-caption h2 {
-          font-size: clamp(1.5rem, 3vw, 2.5rem);
+          font-size: clamp(1.45rem, 3vw, 2.4rem);
           font-weight: 800;
           color: #ffffff;
           margin-bottom: 0.75rem;
@@ -203,24 +191,21 @@ function HomeCarousel() {
 
         .zb-hero-caption p {
           font-size: clamp(0.92rem, 1.3vw, 1.1rem);
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(255, 255, 255, 0.92);
           margin-bottom: 1.5rem;
           max-width: 520px;
         }
 
-        .zb-btn-primary {
+        .zb-cta-btn {
           border-radius: 10px;
           font-weight: 600;
-          padding: 0.65rem 1.4rem;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
+          padding: 0.65rem 1.5rem;
           transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
 
-        .zb-btn-primary:hover {
+        .zb-cta-btn:hover {
           transform: translateY(-1px);
-          box-shadow: 0 8px 20px rgba(13, 110, 253, 0.25);
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
         }
 
         @media (max-width: 991.98px) {
@@ -229,7 +214,7 @@ function HomeCarousel() {
             padding: 2rem 0 2.5rem;
           }
           .zb-hero-img-slide {
-            height: 360px;
+            height: 340px;
           }
           .zb-hero-caption {
             padding: 1.5rem 3.25rem;
@@ -238,7 +223,7 @@ function HomeCarousel() {
 
         @media (max-width: 575.98px) {
           .zb-hero-img-slide {
-            height: 300px;
+            height: 280px;
           }
           .zb-hero-caption {
             padding: 1.25rem 2.75rem 2.5rem;
@@ -250,7 +235,7 @@ function HomeCarousel() {
         }
 
         /* =========================================================
-           ANNOUNCEMENT TICKER (SLIDEWORKS)
+           TICKER BAR (SLIDEWORKS)
         ========================================================= */
         .zb-ticker-bar {
           background: #0f172a;
@@ -259,30 +244,8 @@ function HomeCarousel() {
           display: flex;
           align-items: center;
           overflow: hidden;
-          height: 44px;
+          height: 42px;
           font-size: 0.875rem;
-        }
-
-        .zb-ticker-label {
-          background: #1d4ed8;
-          color: #ffffff;
-          font-weight: 700;
-          font-size: 0.72rem;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          padding: 0 14px;
-          height: 100%;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          flex-shrink: 0;
-          z-index: 2;
-        }
-
-        .zb-ticker-track-wrap {
-          flex: 1;
-          overflow: hidden;
-          position: relative;
         }
 
         .zb-ticker-track {
@@ -301,7 +264,7 @@ function HomeCarousel() {
         }
 
         /* =========================================================
-           MAIN SECTION CARDS (NOTICE BAR & BANK FORM)
+           NOTICE BAR & BANK FORM CARDS
         ========================================================= */
         .zb-surface-card {
           background: #ffffff;
@@ -315,7 +278,7 @@ function HomeCarousel() {
           color: #ffffff;
           border-radius: 16px;
           border: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 10px 30px rgba(15, 41, 66, 0.14);
+          box-shadow: 0 10px 28px rgba(15, 41, 66, 0.14);
           display: flex;
           flex-direction: column;
           height: 100%;
@@ -341,20 +304,8 @@ function HomeCarousel() {
           box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
         }
 
-        .zb-form-section-title {
-          font-size: 0.78rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: #0d6efd;
-          margin-top: 0.5rem;
-          margin-bottom: 0.25rem;
-          padding-bottom: 0.35rem;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
         .zb-input-label {
-          font-size: 0.82rem;
+          font-size: 0.84rem;
           font-weight: 600;
           color: #334155;
           margin-bottom: 0.35rem;
@@ -379,7 +330,7 @@ function HomeCarousel() {
         .zb-slider-section {
           background: #ffffff;
           border-top: 1px solid #e2e8f0;
-          padding: 3.5rem 0;
+          padding: 2.75rem 0;
         }
 
         .zb-slider-viewport {
@@ -395,7 +346,7 @@ function HomeCarousel() {
           display: flex;
           gap: 1.25rem;
           width: max-content;
-          animation: zb-slide-left 48s linear infinite;
+          animation: zb-slide-left 50s linear infinite;
         }
 
         .zb-slider-viewport:hover .zb-slider-track {
@@ -457,7 +408,7 @@ function HomeCarousel() {
           100% { transform: translateX(-50%); }
         }
 
-        /* Modal vertical safety */
+        /* Prevent any modal from overflowing screen vertically */
         .modal-dialog-scrollable .modal-content {
           max-height: 88vh !important;
           border-radius: 16px;
@@ -468,66 +419,47 @@ function HomeCarousel() {
         }
       `}</style>
 
-      {/* ========================================================
-          HERO CAROUSEL
-      ======================================================== */}
       <Carousel
         fade
-        interval={4500}
+        interval={3500}
         controls={true}
         indicators={true}
         pause="hover"
         className="zb-hero-carousel"
       >
-        {/* Slide 0: Split Hero / Know More */}
+        {/* Slide 0: Small Business Loan / Know More */}
         <Carousel.Item>
           <div className="zb-hero-slide-split">
             <div className="container">
               <div className="row align-items-center g-4 py-3">
-                <div className="col-lg-6 px-4 px-md-5 text-center text-lg-start">
-                  <div className="zb-hero-badge">
-                    <FaShieldAlt /> Trusted Banking Since 1990
-                  </div>
-                  <h1 className="zb-hero-title mb-3">
+                <div className="col-lg-6 px-4 px-md-5 text-center text-lg-start" style={{ position: "relative", zIndex: 25 }}>
+                  <h2 className="zb-hero-title mb-3">
                     <span className="text-primary">ZeroBank</span> Digital Banking
-                  </h1>
+                  </h2>
                   <p className="zb-hero-subtitle mb-4">
-                    Financing businesses and empowering dreams with secure, 24×7 modern banking.
+                    Financing Businesses, Empowering Dreams with Modern Banking.
                   </p>
-                  <div className="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
-                    <Button
-                      variant="primary"
-                      type="button"
-                      className="zb-btn-primary"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowKnowMore(true);
-                      }}
-                    >
-                      Know More <FaArrowRight size={13} />
-                    </Button>
-                    <Button
-                      variant="outline-primary"
-                      type="button"
-                      className="zb-btn-primary"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        scrollToOpenAccount();
-                      }}
-                    >
-                      Open Account
-                    </Button>
-                  </div>
+                  <Button
+                    variant="primary"
+                    type="button"
+                    className="zb-cta-btn shadow-sm"
+                    style={{ position: "relative", zIndex: 30, cursor: "pointer" }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowKnowMore(true);
+                    }}
+                  >
+                    Know more
+                  </Button>
                 </div>
 
-                <div className="col-lg-6 text-center px-4">
+                <div className="col-lg-6 text-center px-4" style={{ position: "relative", zIndex: 10 }}>
                   <img
                     src="https://shivalikbank.com/assets/upload/bannerimage/20230207064521.png"
-                    alt="ZeroBank Digital Banking Overview"
+                    alt="ZeroBank Overview"
                     className="img-fluid rounded-4"
-                    style={{ maxHeight: "340px", objectFit: "contain" }}
+                    style={{ maxHeight: "330px", objectFit: "contain" }}
                   />
                 </div>
               </div>
@@ -535,24 +467,25 @@ function HomeCarousel() {
           </div>
         </Carousel.Item>
 
-        {/* Slide 1: Open an Account */}
+        {/* Slide 1: Open an Account (Scroll) */}
         <Carousel.Item>
           <div className="zb-hero-img-slide">
-            <img src={img1} alt="Trusted Banking Since 1990" />
+            <img className="d-block w-100" src={img1} alt="First slide" />
             <div className="zb-hero-overlay" />
             <div className="zb-hero-caption">
               <h2>Trusted Banking Since 1990</h2>
-              <p>Your security, privacy, and financial growth are our top priorities.</p>
+              <p>Your security and trust are our top priorities.</p>
               <Button
                 variant="primary"
-                className="zb-btn-primary"
+                className="zb-cta-btn shadow-sm"
+                style={{ position: "relative", zIndex: 30, cursor: "pointer" }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   scrollToOpenAccount();
                 }}
               >
-                Open an Account <FaArrowRight size={13} />
+                Open an Account
               </Button>
             </div>
           </div>
@@ -561,29 +494,35 @@ function HomeCarousel() {
         {/* Slide 2: Explore Services */}
         <Carousel.Item>
           <div className="zb-hero-img-slide">
-            <img src={img2} alt="Comprehensive Financial Services" />
+            <img className="d-block w-100" src={img2} alt="Second slide" />
             <div className="zb-hero-overlay" />
             <div className="zb-hero-caption">
               <h2>Comprehensive Financial Services</h2>
-              <p>Loans, savings, and investment options tailored to your goals.</p>
-              <Button href="/services" variant="success" className="zb-btn-primary">
-                Explore Services <FaArrowRight size={13} />
+              <p>Loans, savings, and investment options tailored for you.</p>
+              <Button
+                href="/services"
+                variant="success"
+                className="zb-cta-btn shadow-sm"
+                style={{ position: "relative", zIndex: 30 }}
+              >
+                Explore Services
               </Button>
             </div>
           </div>
         </Carousel.Item>
 
-        {/* Slide 3: Contact Us */}
+        {/* Slide 3: Contact Us (Modal) */}
         <Carousel.Item>
           <div className="zb-hero-img-slide">
-            <img src={img3} alt="Bank Anytime, Anywhere" />
+            <img className="d-block w-100" src={img3} alt="Third slide" />
             <div className="zb-hero-overlay" />
             <div className="zb-hero-caption">
               <h2>Bank Anytime, Anywhere</h2>
-              <p>Enjoy 24/7 customer support and seamless online banking.</p>
+              <p>Enjoy 24/7 support and seamless online banking.</p>
               <Button
                 variant="light"
-                className="text-dark zb-btn-primary"
+                className="text-dark zb-cta-btn shadow-sm"
+                style={{ position: "relative", zIndex: 30, cursor: "pointer" }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -591,18 +530,16 @@ function HomeCarousel() {
                   setShowContact(true);
                 }}
               >
-                <FaEnvelope size={14} /> Contact Us
+                Contact Us
               </Button>
             </div>
           </div>
         </Carousel.Item>
       </Carousel>
 
-      {/* Announcement Ticker */}
       <SlideWorks />
 
-      {/* Main Content: Notices + Account Opening Form */}
-      <section className="container py-4 py-lg-5">
+      <div className="container py-4 py-lg-5">
         <div className="row g-4 align-items-stretch">
           <div className="col-12 col-lg-5">
             <NoticeBar inline />
@@ -611,13 +548,12 @@ function HomeCarousel() {
             <BankForm inline />
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Product & Service Slider */}
       <CardSlider />
 
       {/* ========================================================
-          1. KNOW MORE MODAL
+1. KNOW MORE MODAL (Scrollable & Responsive)
       ======================================================== */}
       <Modal
         show={showKnowMore}
@@ -634,9 +570,7 @@ function HomeCarousel() {
         <Modal.Body className="p-3 p-md-4">
           <h4 className="fw-bold text-dark mb-2">Welcome to ZeroBank</h4>
           <p className="text-muted">
-            Founded in 1990, <strong>ZeroBank</strong> delivers secure deposit accounts,
-            digital financial solutions, and personalized customer services for individuals
-            and businesses.
+            Founded in 1990, <strong>ZeroBank</strong> has been delivering cutting-edge financial solutions, secure deposit accounts, and personalized customer services to empower individuals and businesses.
           </p>
 
           <hr className="my-3" />
@@ -645,12 +579,11 @@ function HomeCarousel() {
             <div className="col-md-6">
               <div className="p-3 border rounded-3 bg-light h-100">
                 <div className="d-flex align-items-center mb-2 text-primary">
-                  <FaShieldAlt className="fs-5 me-2" />
+                  <FaShieldAlt className="fs-4 me-2" />
                   <h6 className="fw-bold mb-0">Bank-Grade Security</h6>
                 </div>
                 <p className="small text-muted mb-0">
-                  Protected with 256-bit SSL encryption, multi-layer firewalls, and active
-                  fraud detection.
+                  Every transaction is protected with 256-bit SSL protocols, multi-layer firewalls, and active fraud detection.
                 </p>
               </div>
             </div>
@@ -658,32 +591,22 @@ function HomeCarousel() {
             <div className="col-md-6">
               <div className="p-3 border rounded-3 bg-light h-100">
                 <div className="d-flex align-items-center mb-2 text-success">
-                  <FaClock className="fs-5 me-2" />
+                  <FaClock className="fs-4 me-2" />
                   <h6 className="fw-bold mb-0">24×7 Instant Banking</h6>
                 </div>
                 <p className="small text-muted mb-0">
-                  Real-time fund transfers, bill payments, and digital statements available
-                  round the clock.
+                  Enjoy real-time fund transfers, seamless bill payments, and statements available round the clock.
                 </p>
               </div>
             </div>
           </div>
 
           <div className="mt-4">
-            <h6 className="fw-bold text-dark mb-2">What We Offer</h6>
-            <ul className="list-unstyled text-muted small mb-0 d-flex flex-column gap-2">
-              <li className="d-flex align-items-center gap-2">
-                <FaCheckCircle className="text-primary flex-shrink-0" />
-                High-interest Savings and zero-hassle Current Accounts.
-              </li>
-              <li className="d-flex align-items-center gap-2">
-                <FaCheckCircle className="text-primary flex-shrink-0" />
-                Competitive Small Business, Personal, and Gold Loans.
-              </li>
-              <li className="d-flex align-items-center gap-2">
-                <FaCheckCircle className="text-primary flex-shrink-0" />
-                Fast online approval workflows and verified digital records.
-              </li>
+            <h6 className="fw-bold text-dark mb-2">What We Offer:</h6>
+            <ul className="text-muted small ps-3 mb-0">
+              <li>High-interest Savings and zero-hassle Current Accounts.</li>
+              <li>Competitive Small Business, Personal, and Gold Loans.</li>
+              <li>Instant online approval workflows and verified digital records.</li>
             </ul>
           </div>
         </Modal.Body>
@@ -704,7 +627,7 @@ function HomeCarousel() {
       </Modal>
 
       {/* ========================================================
-          2. CONTACT US MODAL
+2. CONTACT US MODAL (Scrollable & Responsive)
       ======================================================== */}
       <Modal
         show={showContact}
@@ -730,7 +653,7 @@ function HomeCarousel() {
             )}
 
             <p className="text-muted small mb-3">
-              Fill out your details below to send a message directly to ZeroBank Support.
+              Fill out your details and query below. An email will be sent directly to ZeroBank's support desk.
             </p>
 
             <Form.Group className="mb-3">
@@ -798,11 +721,7 @@ function HomeCarousel() {
           </Modal.Body>
 
           <Modal.Footer>
-            <Button
-              variant="secondary"
-              onClick={() => setShowContact(false)}
-              disabled={contactSending}
-            >
+            <Button variant="secondary" onClick={() => setShowContact(false)} disabled={contactSending}>
               Cancel
             </Button>
             <Button
@@ -833,18 +752,12 @@ function SlideWorks() {
     "Welcome to ZeroCode Bank!, your trusted partner in financial services created by Bikash Bhanja, Arup Mandal and Basudeb Bej";
 
   return (
-    <div className="zb-ticker-bar" role="region" aria-label="Bank announcements">
-      <div className="zb-ticker-label">
-        <FaBullhorn size={12} />
-        <span className="d-none d-sm-inline">Notice</span>
-      </div>
-      <div className="zb-ticker-track-wrap">
-        <div className="zb-ticker-track">
-          <span className="px-4">{tickerText}</span>
-          <span className="px-4" aria-hidden="true">
-            {tickerText}
-          </span>
-        </div>
+    <div className="slide-works zb-ticker-bar">
+      <div className="zb-ticker-track">
+        <span style={{ padding: "0 24px" }}>{tickerText}</span>
+        <span style={{ padding: "0 24px" }} aria-hidden="true">
+          {tickerText}
+        </span>
       </div>
     </div>
   );
@@ -894,67 +807,49 @@ function NoticeBar({ inline = false }) {
 
   return (
     <div className={wrapperClass}>
-      <div className="zb-notice-card p-3 p-md-4">
+      <div className="notice-card zb-notice-card p-3 p-md-4">
         <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-white border-opacity-10">
-          <div>
-            <span className="text-uppercase small fw-bold text-warning d-block" style={{ letterSpacing: "0.06em" }}>
-              Updates & Circulars
-            </span>
-            <h5 className="fw-bold mb-0 text-white">What's New</h5>
-          </div>
+          <h5 className="fw-bold mb-0 text-warning">What's New</h5>
           <button
             type="button"
             className="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center"
             style={{ width: "36px", height: "36px" }}
             onClick={() => setIsPlaying((prev) => !prev)}
-            aria-label={isPlaying ? "Pause notice rotation" : "Play notice rotation"}
-            title={isPlaying ? "Pause" : "Play"}
+            aria-label={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? <FaPause size={12} /> : <FaPlay size={12} />}
           </button>
         </div>
 
         <div className="d-flex flex-column gap-2 flex-grow-1 justify-content-between">
-          {notices.map((notice, index) => {
-            const isActive = index === currentIndex;
-            return (
-              <div
-                key={index}
-                role="button"
-                tabIndex={0}
-                className={`zb-notice-item ${isActive ? "is-active" : ""}`}
-                onClick={() => {
+          {notices.map((notice, index) => (
+            <div
+              key={index}
+              role="button"
+              tabIndex={0}
+              className={`zb-notice-item ${index === currentIndex ? "is-active" : ""}`}
+              onClick={() => {
+                setCurrentIndex(index);
+                window.open(notice.pdf, "_blank", "noopener,noreferrer");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
                   setCurrentIndex(index);
                   window.open(notice.pdf, "_blank", "noopener,noreferrer");
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setCurrentIndex(index);
-                    window.open(notice.pdf, "_blank", "noopener,noreferrer");
-                  }
-                }}
-              >
-                <div className="d-flex justify-content-between align-items-center gap-2 mb-1">
-                  <div className="d-flex align-items-center gap-2 flex-wrap">
-                    <span className="fw-semibold small text-white">{notice.date}</span>
-                    <span className="badge bg-warning text-dark" style={{ fontSize: "0.68rem" }}>
-                      NEW
-                    </span>
-                  </div>
-                  <FaFilePdf className="text-warning opacity-75 flex-shrink-0" size={14} />
+                }
+              }}
+            >
+              <div className="d-flex justify-content-between align-items-center gap-2 mb-1">
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <span className="fw-bold small text-white">{notice.date}</span>
+                  <span className="badge bg-warning text-dark">NEW</span>
                 </div>
-                <p className="mb-0 small text-white text-opacity-90 lh-sm">{notice.text}</p>
+                <FaFilePdf className="text-warning opacity-75 flex-shrink-0" size={14} />
               </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-3 pt-2 border-top border-white border-opacity-10 d-flex align-items-center justify-content-between small text-white text-opacity-75">
-          <span>Click any notice to view PDF</span>
-          <span>
-            {currentIndex + 1} / {notices.length}
-          </span>
+              <p className="mb-0 small text-white text-opacity-90 lh-sm">{notice.text}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -1062,32 +957,22 @@ function BankForm({ inline = false }) {
         className="zb-surface-card p-3 p-md-4 h-100"
         onSubmit={handleSubmit}
       >
-        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom">
-          <div>
-            <h5 className="fw-bold mb-0 text-dark">Open Your Account</h5>
-            <span className="text-muted small">Quick digital onboarding with KYC</span>
-          </div>
-          <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill d-inline-flex align-items-center gap-1">
-            <FaLock size={11} /> 256-Bit Encrypted
-          </span>
-        </div>
-
-        {message && (
-          <div
-            className={`alert ${
-              message.startsWith("Error") ? "alert-danger" : "alert-success"
-            } py-2 small`}
-            role="alert"
-          >
-            {message}
-          </div>
-        )}
-
         <div className="row g-3">
-          {/* Section 1: Personal & Contact */}
           <div className="col-12">
-            <div className="zb-form-section-title">1. Personal & Contact Details</div>
+            <h5 className="mb-1 text-center fw-bold pb-2 border-bottom">Open Your Account</h5>
           </div>
+
+          {message && (
+            <div className="col-12">
+              <div
+                className={`alert mb-0 py-2 small ${
+                  message.startsWith("Error") ? "alert-danger" : "alert-success"
+                }`}
+              >
+                {message}
+              </div>
+            </div>
+          )}
 
           <div className="col-12 col-sm-6">
             <label className="zb-input-label">Full Name *</label>
@@ -1110,7 +995,7 @@ function BankForm({ inline = false }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="name@example.com"
+              placeholder="Email ID"
               required
             />
           </div>
@@ -1129,18 +1014,72 @@ function BankForm({ inline = false }) {
           </div>
 
           <div className="col-12 col-sm-6">
-            <label className="zb-input-label">Gender *</label>
+            <label className="zb-input-label">Aadhaar Number *</label>
+            <input
+              type="text"
+              className="form-control zb-form-control"
+              name="aadhaar"
+              value={formData.aadhaar}
+              onChange={handleChange}
+              placeholder="Aadhaar Number"
+              required
+              pattern="^[0-9]{12}$"
+              title="Enter valid Aadhaar number (e.g. 123456789012)"
+            />
+          </div>
+
+          <div className="col-12 col-sm-6">
+            <label className="zb-input-label">Aadhaar Document *</label>
+            <input
+              type="file"
+              className="form-control zb-form-control"
+              name="aadhaardoc"
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="col-12 col-sm-6">
+            <label className="zb-input-label">PAN Number *</label>
+            <input
+              type="text"
+              className="form-control zb-form-control"
+              name="pan"
+              value={formData.pan}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase();
+                setFormData({ ...formData, pan: value });
+              }}
+              placeholder="ABCDE1234F"
+              required
+              pattern="^[A-Z]{5}[0-9]{4}[A-Z]{1}$"
+              title="Enter valid PAN number (e.g. ABCDE1234F)"
+            />
+          </div>
+
+          <div className="col-12 col-sm-6">
+            <label className="zb-input-label">PAN Document *</label>
+            <input
+              type="file"
+              className="form-control zb-form-control"
+              name="pandoc"
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="col-12 col-sm-6">
+            <label className="zb-input-label">Account Type *</label>
             <select
               className="form-select zb-form-control"
-              name="gender"
-              value={formData.gender}
+              name="accountType"
+              value={formData.accountType}
               onChange={handleChange}
               required
             >
-              <option value="">--Gender--</option>
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
+              <option value="">--Select--</option>
+              <option>Savings</option>
+              <option>Current</option>
             </select>
           </div>
 
@@ -1198,66 +1137,6 @@ function BankForm({ inline = false }) {
             />
           </div>
 
-          {/* Section 2: KYC Documents */}
-          <div className="col-12">
-            <div className="zb-form-section-title">2. KYC Verification</div>
-          </div>
-
-          <div className="col-12 col-sm-6">
-            <label className="zb-input-label">Aadhaar Number *</label>
-            <input
-              type="text"
-              className="form-control zb-form-control"
-              name="aadhaar"
-              value={formData.aadhaar}
-              onChange={handleChange}
-              placeholder="12-digit Aadhaar"
-              required
-              pattern="^[0-9]{12}$"
-              title="Enter valid Aadhaar number (e.g. 123456789012)"
-            />
-          </div>
-
-          <div className="col-12 col-sm-6">
-            <label className="zb-input-label">Aadhaar Document *</label>
-            <input
-              type="file"
-              className="form-control zb-form-control"
-              name="aadhaardoc"
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="col-12 col-sm-6">
-            <label className="zb-input-label">PAN Number *</label>
-            <input
-              type="text"
-              className="form-control zb-form-control"
-              name="pan"
-              value={formData.pan}
-              onChange={(e) => {
-                const value = e.target.value.toUpperCase();
-                setFormData({ ...formData, pan: value });
-              }}
-              placeholder="ABCDE1234F"
-              required
-              pattern="^[A-Z]{5}[0-9]{4}[A-Z]{1}$"
-              title="Enter valid PAN number (e.g. ABCDE1234F)"
-            />
-          </div>
-
-          <div className="col-12 col-sm-6">
-            <label className="zb-input-label">PAN Document *</label>
-            <input
-              type="file"
-              className="form-control zb-form-control"
-              name="pandoc"
-              onChange={handleChange}
-              required
-            />
-          </div>
-
           <div className="col-12 col-sm-6">
             <label className="zb-input-label">Signature *</label>
             <input
@@ -1280,26 +1159,6 @@ function BankForm({ inline = false }) {
             />
           </div>
 
-          {/* Section 3: Account & Security */}
-          <div className="col-12">
-            <div className="zb-form-section-title">3. Account Preferences & Security</div>
-          </div>
-
-          <div className="col-12 col-sm-6">
-            <label className="zb-input-label">Account Type *</label>
-            <select
-              className="form-select zb-form-control"
-              name="accountType"
-              value={formData.accountType}
-              onChange={handleChange}
-              required
-            >
-              <option value="">--Select--</option>
-              <option>Savings</option>
-              <option>Current</option>
-            </select>
-          </div>
-
           <div className="col-12 col-sm-6">
             <label className="zb-input-label">Preferred Language *</label>
             <select
@@ -1313,6 +1172,22 @@ function BankForm({ inline = false }) {
               <option>English</option>
               <option>Hindi</option>
               <option>Bengali</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div className="col-12 col-sm-6">
+            <label className="zb-input-label">Gender *</label>
+            <select
+              className="form-select zb-form-control"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              required
+            >
+              <option value="">--Gender--</option>
+              <option>Male</option>
+              <option>Female</option>
               <option>Other</option>
             </select>
           </div>
@@ -1349,7 +1224,7 @@ function BankForm({ inline = false }) {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="Confirm Password"
+                placeholder="Password"
                 required
               />
               <button
@@ -1375,27 +1250,19 @@ function BankForm({ inline = false }) {
                 required
               />
               <label className="form-check-label small text-muted" htmlFor="zb-consent-check">
-                I authorize ZeroBank to contact me regarding my account application.
+                I authorize ZeroBank to contact me. Please fill the form, and we’ll reach out shortly.
               </label>
             </div>
           </div>
 
-          <div className="col-12 d-grid d-sm-flex justify-content-sm-end pt-1">
+          <div className="col-12 d-grid d-sm-flex justify-content-sm-center pt-1">
             <button
               type="submit"
-              className="btn btn-primary px-4 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2"
+              className="btn btn-primary px-5 py-2 fw-semibold"
               style={{ borderRadius: "10px" }}
               disabled={submitting}
             >
-              {submitting ? (
-                <>
-                  <Spinner animation="border" size="sm" /> Submitting...
-                </>
-              ) : (
-                <>
-                  Submit Application <FaArrowRight size={13} />
-                </>
-              )}
+              {submitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>
@@ -1467,16 +1334,6 @@ function CardSlider() {
   return (
     <section className="zb-slider-section">
       <div className="container">
-        <div className="text-center mb-4">
-          <span className="text-uppercase small fw-bold text-primary" style={{ letterSpacing: "0.06em" }}>
-            Products & Services
-          </span>
-          <h3 className="fw-bold text-dark mt-1 mb-1">Financial Solutions for Every Need</h3>
-          <p className="text-muted small mb-0">
-            Hover to pause and select any service to view full details.
-          </p>
-        </div>
-
         <div className="zb-slider-viewport">
           <div className="zb-slider-track">
             {[...notices, ...notices].map((notice, i) => (
@@ -1493,11 +1350,11 @@ function CardSlider() {
                   </div>
                   <button
                     type="button"
-                    className="btn btn-outline-primary btn-sm fw-semibold d-inline-flex align-items-center justify-content-center gap-1 mx-auto px-3"
+                    className="btn btn-outline-primary btn-sm fw-semibold mx-auto px-3"
                     style={{ borderRadius: "8px" }}
                     onClick={() => setSelectedNotice(notice)}
                   >
-                    Know More <FaExternalLinkAlt size={11} />
+                    Know More
                   </button>
                 </div>
               </div>
@@ -1506,7 +1363,7 @@ function CardSlider() {
         </div>
       </div>
 
-      {/* Product Detail Modal */}
+      {/* Unified Bootstrap Modal */}
       <Modal
         show={Boolean(selectedNotice)}
         onHide={() => setSelectedNotice(null)}
@@ -1514,16 +1371,7 @@ function CardSlider() {
         scrollable
       >
         <Modal.Header closeButton className="bg-light">
-          <Modal.Title className="fw-bold fs-5 d-flex align-items-center gap-2">
-            {selectedNotice?.image && (
-              <img
-                src={selectedNotice.image}
-                alt={selectedNotice.title}
-                style={{ width: "28px", height: "28px", objectFit: "contain" }}
-              />
-            )}
-            {selectedNotice?.title}
-          </Modal.Title>
+          <Modal.Title className="fw-bold fs-5">{selectedNotice?.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="p-3 p-md-4">
           <p className="text-muted mb-0 lh-base">{selectedNotice?.description}</p>
