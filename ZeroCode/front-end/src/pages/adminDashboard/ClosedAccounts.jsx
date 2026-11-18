@@ -54,7 +54,11 @@ export default function ClosedAccounts() {
         return <Badge bg="secondary">Closed</Badge>;
       case "frozen":
       case "freeze":
-        return <Badge bg="warning" text="dark">Frozen</Badge>;
+        return (
+          <Badge bg="warning" text="dark">
+            Frozen
+          </Badge>
+        );
       default:
         return <Badge bg="dark">{status}</Badge>;
     }
@@ -70,15 +74,26 @@ export default function ClosedAccounts() {
   }
 
   return (
-    <div className="container mt-5">
-      <h3 className="mb-4 text-center fw-bold">
-        <FaUserSlash className="me-2 text-danger" /> Admin — Closed & Rejected Accounts
-      </h3>
+    <div className="container py-3 py-md-4">
+      <style>{`
+        .zb-admin-table-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+          overflow: hidden;
+        }
+        .zb-tabular { font-variant-numeric: tabular-nums; }
+      `}</style>
 
-      <div className="d-flex justify-content-end mb-3">
-        <InputGroup style={{ maxWidth: "350px" }}>
-          <InputGroup.Text>
-            <FaSearch />
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <h3 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+          <FaUserSlash className="text-danger flex-shrink-0" /> Admin — Closed & Rejected Accounts
+        </h3>
+
+        <InputGroup style={{ maxWidth: "350px" }} className="w-100">
+          <InputGroup.Text className="bg-white">
+            <FaSearch className="text-muted" />
           </InputGroup.Text>
           <Form.Control
             type="text"
@@ -89,33 +104,31 @@ export default function ClosedAccounts() {
         </InputGroup>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <Table striped bordered hover responsive className="align-middle mb-0">
+      <div className="zb-admin-table-card">
+        <Table striped hover responsive className="align-middle mb-0">
           <thead className="table-danger text-center">
             <tr>
-              <th>#</th>
-              <th>Full Name</th>
-              <th>Email</th>
-              <th>Mobile</th>
-              <th>Account Type</th>
-              <th>Status</th>
-              <th>Reason / Remarks</th>
-              <th>Date</th>
+              <th className="text-nowrap">#</th>
+              <th className="text-nowrap">Full Name</th>
+              <th className="text-nowrap">Email</th>
+              <th className="text-nowrap">Mobile</th>
+              <th className="text-nowrap">Account Type</th>
+              <th className="text-nowrap">Status</th>
+              <th className="text-nowrap">Reason / Remarks</th>
+              <th className="text-nowrap">Date</th>
             </tr>
           </thead>
           <tbody>
             {filteredAccounts.map((acc, i) => (
               <tr key={acc._id}>
-                <td className="text-center">{i + 1}</td>
-                <td className="text-center fw-semibold">{acc.fullName}</td>
-                <td className="text-center">{acc.email}</td>
-                <td className="text-center">{acc.mobile}</td>
-                <td className="text-center">{acc.accountType || "Savings"}</td>
-                <td className="text-center">{renderStatusBadge(acc.status)}</td>
-                <td className="text-center small text-muted">
-                  {acc.rejectionReason || "—"}
-                </td>
-                <td className="text-center">
+                <td className="text-center zb-tabular">{i + 1}</td>
+                <td className="text-center fw-semibold text-nowrap">{acc.fullName}</td>
+                <td className="text-center text-nowrap">{acc.email}</td>
+                <td className="text-center zb-tabular text-nowrap">{acc.mobile}</td>
+                <td className="text-center text-nowrap">{acc.accountType || "Savings"}</td>
+                <td className="text-center text-nowrap">{renderStatusBadge(acc.status)}</td>
+                <td className="text-center small text-muted">{acc.rejectionReason || "—"}</td>
+                <td className="text-center zb-tabular text-nowrap">
                   {new Date(acc.updatedAt || acc.createdAt).toLocaleDateString()}
                 </td>
               </tr>
